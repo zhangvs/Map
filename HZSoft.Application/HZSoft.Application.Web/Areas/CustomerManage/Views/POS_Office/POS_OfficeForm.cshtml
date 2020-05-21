@@ -1,0 +1,130 @@
+@{;
+    ViewBag.Title = "表单页面";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<link href="~/Content/Scripts/cloud-zoom/cloud-zoom.css" rel="stylesheet" />
+<script src="~/Content/Scripts/cloud-zoom/cloud-zoom.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+        Zoomhover($(".probox img"), $(".hoverbox"), $(".showbox img"));
+    });
+    //初始化控件
+    function initControl() {
+        //销售人员
+        $("#SellerId").ComboBoxTree({
+            url: "../../BaseManage/User/GetTreeJson",
+            description: "==请选择==",
+            height: "250px",
+            width: "200px"
+        }).bind("change", function () {
+            $("#SellerName").val($(this).attr('data-text'));
+        });
+        //状态
+        $("#State").ComboBox({
+            description: "==请选择==",
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CustomerManage/POS_Office/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('.thumb').attr("src", data.OfficePicture);
+                }
+            })
+        }
+    }
+    //保存表单;
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        $.SaveForm({
+            url: "../../CustomerManage/POS_Office/SaveForm?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <td class="formTitle"></td>
+            <td class="formValue">
+                <input id="OfficePicture" type="hidden" class="form-control" />
+                <div class="imgbox">
+                    <div class="probox">
+                        <img class="thumb" src="~/Content/Images/goods1.jpg" />
+                        <div class="hoverbox"></div>
+                    </div>
+                    <div class="showbox">
+                        <img class="thumb" src="~/Content/Images/goods1.jpg" />
+                    </div>
+                </div>
+            </td>
+
+            <td class="formValue" colspan="2">
+                <table class="form">
+                    <tr>
+                        <td class="formTitle">写字楼名<font face="宋体">*</font></td>
+                        <td class="formValue" colspan="3">
+                            <input id="OfficeName" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">地址<font face="宋体">*</font></td>
+            <td class="formValue" colspan="3">
+                <textarea id="OfficeAddress" maxlength="200" class="form-control" rows="2" isvalid="yes" checkexpession="NotNull"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">上传人</td>
+            <td class="formValue">
+                <div id="SellerId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                <input id="SellerName" type="hidden" />
+            </td>
+            <td class="formTitle">上传微信</td>
+            <td class="formValue">
+                <input id="NickName" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">微信经度</td>
+            <td class="formValue">
+                <input id="wxLon" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">微信纬度</td>
+            <td class="formValue">
+                <input id="wxLat" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">百度经度</td>
+            <td class="formValue">
+                <input id="bdLon" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">百度纬度</td>
+            <td class="formValue">
+                <input id="bdLat" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">备注</td>
+            <td class="formValue" colspan="3">
+                <textarea id="Description" maxlength="200" class="form-control" rows="3"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

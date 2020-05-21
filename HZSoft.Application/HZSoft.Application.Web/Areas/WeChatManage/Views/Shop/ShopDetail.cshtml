@@ -1,0 +1,286 @@
+﻿@{
+    ViewBag.Title = "公司详情";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+@using HZSoft.Application.Entity.CustomerManage;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name='apple-touch-fullscreen' content='yes' />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no" />
+    <link href="~/Content/Styles/stylelist.css" rel="stylesheet" type="text/css" />
+    <script src="~/Content/scripts/jquery/jquery-2.0.3.min.js" type="text/javascript"></script>
+</head>
+<script>
+    var objectSort = 4;
+    var keyValue = request('keyValue');
+    $(function () {
+        GetTimeline();
+    })
+    //获取跟进记录列表
+    function GetTimeline() {
+        $.ajax({
+            url: "../../WeChatManage/TrailRecord/GetListJson",
+            data: { objectId: keyValue },
+            type: "get",
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                var timeline = data.timeline;
+                var rows = data.rows;
+                var _html = "";
+                $.each(timeline, function (key) {
+                    _html += '<li> ';
+                    _html += '    <span class="label label-warning"><i class="fa fa-circle"></i>' + key + '</span> ';
+                    _html += '    <div class="content"> ';
+                    $.each(rows, function (i) {
+                        var row = rows[i];
+                        if (timeline[key] == formatDate(row.CreateDate, 'yyyy-MM-dd')) {
+                            _html += '        <div class="row"> ';
+                            _html += '            <span class="item-flag"><i class="fa fa-file-text-o"></i></span> ';
+                            _html += '            <div class="item-data"> ';
+                            _html += '                <span class="time">' + formatDate(row.CreateDate, 'hh:mm') + '</span> ';
+                            _html += '                <span class="name">' + row.CreateUserName + '<i class="fa fa-caret-right"></i></span> ';
+                            _html += '                <span class="action">' + row.TrackContent + '</span> ';
+                            _html += '            </div> ';
+                            _html += '        </div> ';
+                        }
+                    });
+                    _html += '    </div> ';
+                    _html += '</li> ';
+
+                });
+                $("#ul_timeline").html(_html);
+            }
+        });
+    }
+    //保存表单
+    function AcceptClick() {
+        var postData = {};
+        postData["ObjectId"] = keyValue;
+        postData["ObjectSort"] = objectSort;
+        postData["TrackContent"] = $("#TrackContent").val();
+
+        $.ajax({
+            url: "../../WeChatManage/TrailRecord/SaveForm",
+            type: "POST",
+            data: postData,
+            success: function (responseText) {
+                GetTimeline();
+                $("#TrackContent").val('');
+            },
+            error: function () {
+
+            }
+        });
+    }
+</script>
+<body>
+    @{
+        POS_ShopEntity shopModel = ViewBag.model;
+    }
+    @if (shopModel != null)
+    {
+        <header class="bg03" style="position: none; opacity: 1; z-index: 999;">
+            <h3 style="position: absolute;  text-align: left; line-height:0.85rem;color:white;width: 90%;" onclick="window.history.back(-1);">
+                <img src="/Content/images/btn_return.png" style="height: 30px; margin-bottom: 5px;" />@Html.Raw(shopModel.ShopName)
+            </h3>
+            <a href="AddShop?keyValue=@shopModel.Id" class="icon_map fr"><img class="fl" src="../../../../Content/Images/bianji.png" style="" /> </a>
+        </header>
+            <div id="slide" class="slide" style="height: 5rem">
+                <div class="swiper-wrapper" style="height: 5rem">
+                    <div class="swiper-slide" style="height: 5rem; width: 100%;text-align:center">
+                        <a href="@shopModel.ShopPicture" style="display: block; width: 100%;">
+                            <img src="@shopModel.ShopPicture" style="height:5rem" />
+                        </a>
+                    </div>
+                </div>
+                <div class="pagination">
+                </div>
+            </div>
+            <div class="jyfw" style="margin-top: 0.2rem; padding: 1% 4%; background: #fff;
+            line-height: 150%; display: flex;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 95%;">
+                    @*@if (!string.IsNullOrEmpty(shopModel.ShopName))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="font-size: 14px;font-weight: bold;">@Html.Raw(shopModel.ShopName)</font>
+                                <a href="AddShop?keyValue=@shopModel.Id">
+                                    <img src="../../../../Content/Images/bianji2.png" />
+                                </a>
+                            </td>
+                        </tr>
+                    }*@
+                    <tr>
+                        <td colspan="2">
+                            <font style="color: #9a9a9a">合作状态：</font>
+                            @if (shopModel.State == 0)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold">未开发</span>
+                            }
+                            else if (shopModel.State == 1)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold">已拒绝</span>
+                            }
+                            else if (shopModel.State == 2)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold"> 有意向</span>
+                            }
+                            else if (shopModel.State == 3)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold"> 已合作</span>
+                            }
+                            else if (shopModel.State == 4)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold"> 待跟进</span>
+                            }
+                            else if (shopModel.State == 5)
+                            {
+                                <span style="color: #B6A2DE; font-size:14px;font-weight:bold"> 非意向</span>
+                            }
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(shopModel.ShopAddress))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">公司地址：</font>@Html.Raw(shopModel.ShopAddress)
+                            </td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrEmpty(shopModel.BuildTime.ToString()))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">成立日期：</font>@Html.Raw(shopModel.BuildTime).ToString().Replace(" 0:00:00", "")
+                            </td>
+                        </tr>
+                    }
+                    @if (shopModel.Capital != null)
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">注册资本：</font>@Html.Raw(shopModel.Capital)
+                            </td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrEmpty(shopModel.Contacts))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">联系人：</font>@Html.Raw(shopModel.Contacts)
+                            </td>
+                        </tr>
+                    }
+                    @if (shopModel.Telphone != null)
+                {
+                        <tr>
+                            <td colspan="2" style="">
+                                <font style="color: #9a9a9a">电 话：</font>@Html.Raw(shopModel.Telphone)
+                                <a href='tel:@Html.Raw(shopModel.Telphone)'>
+                                    <img src="../../../../Content/Images/电话 (1).png" style="height: 30px; width: 30px;" />
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
+
+            <div class="zhpj" style="margin-top: 0.2rem; padding: 1% 4%;  background: #fff; line-height: 150%;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    @if (!string.IsNullOrEmpty(shopModel.Scope))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">经营范围：</font>@Html.Raw(shopModel.Scope)
+                            </td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrEmpty(shopModel.Website))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">网站：</font>
+
+                                <a href='@Html.Raw(shopModel.Website)'>
+                                    @Html.Raw(shopModel.Website)
+                                </a>
+                            </td>
+                        </tr>
+                    }@if (!string.IsNullOrEmpty(shopModel.Mailbox))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">邮箱：</font>@Html.Raw(shopModel.Mailbox)
+                            </td>
+                        </tr>
+                    }
+
+                    @if (!string.IsNullOrEmpty(shopModel.Area))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">面积：</font>@Html.Raw(shopModel.Area)
+                            </td>
+                        </tr>
+                    }@if (!string.IsNullOrEmpty(shopModel.Employee))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">人数：</font>@Html.Raw(shopModel.Employee)
+                            </td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrEmpty(shopModel.Description))
+                {
+                        <tr>
+                            <td colspan="2">
+                                <font style="color: #9a9a9a">备注：</font>@Html.Raw(shopModel.Description)
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
+
+            <div class="adress" style="padding: 1.3% 4%; background: #fff; line-height: 150%;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" height="40px;">
+                    <tr id="tr_address">
+                        <td style="width: 30%; text-align: center;">
+                            <a href="/WeChatManage/POS_Sale/SaleForm?CustomerId=@shopModel.Id&CustomerName=@shopModel.Contacts&CustomerCompany=@shopModel.ShopName" style="color: #fafafa;  background-color: #FF9800; display: block;padding: 10px;margin:10px;font-size: 15px;">下订单</a>
+                        </td>
+                        <td style="width: 30%; text-align: center;">
+                            <a href="/WeChatManage/POS_Yu/YuForm?CustomerId=@shopModel.Id&CustomerName=@shopModel.Contacts&CustomerCompany=@shopModel.ShopName" style="color: #fafafa;  background-color: #51addc; display: block;padding: 10px;margin:10px;font-size: 15px;">更新库存</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+    }
+    <div style="margin: 10px; margin-bottom: 0px;">
+        <table class="form">
+            <tr>
+                <td class="formValue">
+                    <textarea id="TrackContent" maxlength="200" placeholder="活动记录内容" class="form-control" isvalid="yes" checkexpession="NotNull" style="height: 60px; border-radius: 5px;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td class="formValue" style="text-align: right;">
+                    <a id="btn_Search" class="btn btn-success" onclick="AcceptClick()"><i class="fa fa-paper-plane"></i>&nbsp;跟进记录</a>
+                </td>
+            </tr>
+        </table>
+        <div style="overflow: auto; height: 380px">
+            <div class="timeline">
+                <div class="line"></div>
+                <ul id="ul_timeline"></ul>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

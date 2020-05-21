@@ -1,0 +1,209 @@
+﻿@{
+    ViewBag.Title = "报表预览";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<!--第三方统计图start-->
+<script src="~/Content/Scripts/echarts/echarts.min.js" type="text/javascript"></script>
+<script src="~/Content/Scripts/echarts/theme/dark.js" type="text/javascript"></script>
+<script src="~/Content/Scripts/echarts/theme/macarons.js" type="text/javascript"></script>
+<!--第三方统计图end-->
+<!--jqgrid表格组件start-->
+<link href="~/Content/scripts/plugins/jqgrid/jqgrid.css" rel="stylesheet" />
+<script src="~/Content/scripts/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="~/Content/scripts/plugins/jqgrid/jqgrid.min.js"></script>
+<!--表格组件end-->
+<link href="~/Content/styles/hzsoft-report.css" rel="stylesheet" />
+<script src="~/Content/Scripts/dms/dms_location_emp.js" type="text/javascript"></script>
+<style type="text/css">
+    table.dataView {
+        border-collapse: collapse;
+    }
+
+        table.dataView th, table.dataView td {
+            border: 1px solid #000;
+            padding: 2px;
+        }
+</style>
+<script>
+    $(function () {
+        //点击时间范围
+        $("#time_horizon a.btn-default").click(function () {
+            $("#time_horizon a.btn-default").removeClass("active");
+            $(this).addClass("active");
+            switch ($(this).attr('data-value')) {
+                case "1"://今天
+                    $("#StartTime").val("@DateTime.Now.ToString("yyyy-MM-dd")");
+                    $("#EndTime").val("@DateTime.Now.ToString("yyyy-MM-dd")");
+                    break;
+                case "2"://本周
+                    $("#StartTime").val("@DateTime.Now.AddDays(1 - Convert.ToInt32(DateTime.Now.DayOfWeek.ToString("d"))).ToString("yyyy-MM-dd")");
+                    $("#EndTime").val("@DateTime.Now.ToString("yyyy-MM-dd")");
+                    break;
+                case "3"://本月
+                    $("#StartTime").val("@DateTime.Now.ToString("yyyy-MM-01")");
+                    $("#EndTime").val("@DateTime.Now.ToString("yyyy-MM-dd")");
+                    break;
+                case "4"://全部
+                    $("#StartTime").val("");
+                    $("#EndTime").val("");
+                    break;
+                default:
+                    break;
+            }
+            doserch();
+        });
+
+        doserch();
+    });
+
+    function doserch() {
+        clearData();
+        var queryJson = {
+            StartTime: $("#StartTime").val(),
+            EndTime: $("#EndTime").val()
+        }
+        $.ajax({
+            type: "POST",
+            url: "/ReportManage/Dms/GetEmpObtainData",
+            data: { queryJson: JSON.stringify(queryJson), rnd: Math.random() },
+            success: function (data) {
+                if (data) {
+                    var result = JSON.parse(data);
+                    var obtain_counts = [];
+                    DrawEChartObtain();
+                    var optionObtain = myChartObtain.getOption();
+                    for (var j = 0; j < result.length; j++) {
+                        var emp_name = result[j].obtainusername;
+                        var obtain_count = result[j].obtaincount;
+                        sum_obtain_counts += obtain_count;
+
+                        emp_obtain_names.push(emp_name);
+                        obtain_counts.push(obtain_count);
+                    }
+
+                    optionObtain.series[0].data = obtain_counts;
+                    optionObtain.xAxis[0].data = emp_obtain_names;
+                    optionObtain.title[0].subtext = '总客户数：' + sum_obtain_counts;
+
+                    myChartObtain.setOption(optionObtain);
+                }
+            },
+            error: function () {
+                layer.alert('错误', {
+                    skin: 'layui-layer-molv', closeBtn: 0
+                });
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "/ReportManage/Dms/GetEmpRecordData",
+            data: { queryJson: JSON.stringify(queryJson), rnd: Math.random() },
+            success: function (data) {
+                if (data) {
+                    var result = JSON.parse(data);
+                    var record_counts = [];
+                    DrawEChartRecord();
+                    var optionRecord = myChartRecord.getOption();
+                    for (var j = 0; j < result.length; j++) {
+                        var emp_name = result[j].modifyusername;
+                        var record_count = result[j].recordcount;
+                        sum_record_counts += record_count;
+
+                        emp_record_names.push(emp_name);
+                        record_counts.push(record_count);
+                    }
+
+                    optionRecord.series[0].data = record_counts;
+                    optionRecord.xAxis[0].data = emp_record_names;
+                    optionRecord.title[0].subtext = '总跟进数：' + sum_record_counts;
+
+                    myChartRecord.setOption(optionRecord);
+                }
+            },
+            error: function () {
+                layer.alert('错误', {
+                    skin: 'layui-layer-molv', closeBtn: 0
+                });
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "/ReportManage/Dms/GetEmpSeeData",
+            data: { queryJson: JSON.stringify(queryJson), rnd: Math.random() },
+            success: function (data) {
+                if (data) {
+                    var result = JSON.parse(data);
+                    var see_counts = [];
+                    DrawEChartSee();
+                    var optionSee = myChartSee.getOption();
+                    for (var j = 0; j < result.length; j++) {
+                        var emp_name = result[j].seeusername;
+                        var see_count = result[j].seecount;
+                        sum_see_counts += see_count;
+
+                        emp_see_names.push(emp_name);
+                        see_counts.push(see_count);
+                    }
+
+                    optionSee.series[0].data = see_counts;
+                    optionSee.xAxis[0].data = emp_see_names;
+                    optionSee.title[0].subtext = '总查看数：' + sum_see_counts;
+
+                    myChartSee.setOption(optionSee);
+                }
+            },
+            error: function () {
+                layer.alert('错误', {
+                    skin: 'layui-layer-molv', closeBtn: 0
+                });
+            }
+        });
+
+
+    }
+</script>
+<div id="formAreas">
+    <div class="titlePanel" style="border:none">
+        <div class="title-search">
+            <table id="filter-form">
+                <tr>
+                    <td style="padding-left: 2px;">
+                        起始日期
+                    </td>
+                    <td style="padding-left: 2px;">
+                        <input id="StartTime" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker({ dateFmt: 'yyyy-MM-dd' })"
+                               value="@DateTime.Now.AddDays(1 - Convert.ToInt32(DateTime.Now.DayOfWeek.ToString("d"))).ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td style="padding-left: 2px;">
+                        结束日期
+                    </td>
+                    <td style="padding-left: 2px;">
+                        <input id="EndTime" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker({ dateFmt: 'yyyy-MM-dd' })"
+                               value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Search" class="btn btn-primary" onclick="doserch()"><i class="fa fa-search"></i>&nbsp;查询</a>
+                    </td>
+                    <td style="padding-left: 10px;">
+                        <div id="time_horizon" class="btn-group">
+                            <div id="time_horizon" class="btn-group">
+                                <a class="btn btn-default" data-value="1">今天</a>
+                                <a class="btn btn-default active" data-value="2">本周</a>
+                                <a class="btn btn-default" data-value="3">本月</a>
+                                <a class="btn btn-default" data-value="4">全部</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="toolbar">
+            <div class="btn-group">
+                <a id="lr-replace" class="btn btn-default" onclick="window.location.reload();"><i class="fa fa-refresh"></i>&nbsp;刷新</a>
+            </div>
+        </div>
+    </div>
+    <div id="mainObtain"></div>
+    <div id="mainSee"></div>
+    <div id="mainRecord"></div>
+</div>

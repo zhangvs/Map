@@ -1,0 +1,349 @@
+@{;
+    ViewBag.Title = "表单页面";
+    Layout = "~/Views/Shared/_OrderForm.cshtml";
+}
+<script src="~/Content/scripts/utils/hzsoft-ui.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    var UserId;
+    $(function () {
+        InitialPage();
+        GetOrderEntryGrid();
+        initControl();
+    });
+    //初始化页面
+    function InitialPage() {
+        $(".bills").height($(window).height() - 88);
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $(".bills").height($(window).height() - 88);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //初始化控件
+    function initControl() {
+        //客户
+        $("#CustomerId").ComboBox({
+            url: "../../ReportManage/Dms/GetCustomerData",
+            id: "id",
+            text: "name",
+            description: "==请选择==",
+            height: "360px",
+            width: "280px",
+            allowSearch: true
+        }).bind("change", function () {
+            $("#CustomerCompany").val($(this).attr('data-text'));
+        });
+
+
+        //创建人员
+        $("#CreateUserId").ComboBoxTree({
+            url: "../../BaseManage/User/GetTreeJson",
+            description: "==请选择==",
+            height: "360px",
+            width: "280px"
+        }).bind("change", function () {
+            $("#CreateUserName").val($(this).attr('data-text'));
+            UserId = $(this).attr('data-value');
+        });
+
+        //更新人员
+        $("#ModifyUserId").ComboBoxTree({
+            url: "../../BaseManage/User/GetTreeJson",
+            description: "==请选择==",
+            height: "360px",
+            width: "280px"
+        }).bind("change", function () {
+            $("#ModifyUserName").val($(this).attr('data-text'));
+            UserId = $(this).attr('data-value');
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CustomerManage/Sale_Customer/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data.entity);
+                    //明细
+                    var childEntity = data.childEntity;
+                    $('#gridTable').find('[role=row]').each(function (i) {
+                        var row = childEntity[i - 1];
+                        if (row != undefined) {
+                            $(this).find('input[name="Id"]').val(row.Id);
+                            $(this).find('input[name="CustomerId"]').val(row.CustomerId);
+                            $(this).find('input[name="ProductId"]').val(row.ProductId);
+                            $(this).find('input[name="ProductCode"]').val(row.ProductCode);
+                            $(this).find('input[name="ProductName"]').val(row.ProductName);
+                            $(this).find('input[name="UnitPrice"]').val(row.UnitPrice);
+                            $(this).find('input[name="SumAmount"]').val(row.SumAmount);
+                            $(this).find('input[name="SumCount"]').val(row.SumCount);
+                            $(this).find('input[name="YuCount"]').val(row.YuCount);
+                            $(this).find('input[name="SaleCount"]').val(row.SaleCount);
+                            $(this).find('input[name="Sort"]').val(row.Sort);
+                            $(this).find('input[name="Description"]').val(row.Description);
+                            $(this).find('[id="PlusDelete"]').val("删除");
+                            $(this).find('input').removeAttr('disabled').attr("isvalid", "yes");
+                            $(this).next().find('input').removeAttr('disabled');
+                        }
+                    });
+                    //合计
+                    GetTotal();
+                }
+            })
+        }
+    }
+    //加载明细表
+    function GetOrderEntryGrid() {
+        var $grid = $('#gridTable');
+        $grid.jqGrid({
+            unwritten: false,
+            datatype: 'local',
+            height: '100%',
+            autowidth: true,
+            colModel: [
+{ label: '统计子表Id', name: 'Id', width: 80, align: '', sortable: false, resizable: false, hidden: true },
+{ label: '产品名称', name: 'ProductName', width: 180, align: '', sortable: false, resizable: false },
+{ label: '产品编号', name: 'ProductCode', width: 100, align: '', sortable: false, resizable: false },
+{ label: '单价', name: 'UnitPrice', width: 80, align: '', sortable: false, resizable: false },
+{ label: '累计金额', name: 'SumAmount', width: 120, align: '', sortable: false, resizable: false },
+{ label: '累计数量', name: 'SumCount', width: 120, align: '', sortable: false, resizable: false },
+{ label: '剩余数量', name: 'YuCount', width: 120, align: '', sortable: false, resizable: false },
+{ label: '销售数量', name: 'SaleCount', width: 120, align: '', sortable: false, resizable: false },
+{ label: '排序', name: 'Sort', width: 80, align: '', sortable: false, resizable: false },
+{ label: '描述', name: 'Description', width: 380, align: '', sortable: false, resizable: false },
+                { label: '删除', name: 'PlusDelete', width: 95, align: '', sortable: false, resizable: false },
+            ],
+            pager: false,
+            rownumbers: true,
+            shrinkToFit: false,
+            gridview: true,
+            footerrow: true,
+            gridComplete: function () {
+                //合计
+                $(this).footerData("set", {
+                    "ProductName": "合计：",
+                    "SumAmount": "<span id='SumTotalAmount'>0.00</span>",
+                    "SumCount": "<span id='SumTotalCount'>0.00</span>",
+                    "YuCount": "<span id='SumYuCount'>0.00</span>",
+                    "SaleCount": "<span id='SumSaleCount'>0.00</span>"
+                });
+            }
+        });
+        //表头合并
+        $grid.jqGrid('setGroupHeaders', {
+            useColSpanStyle: true,
+            groupHeaders: [
+              { startColumnName: 'ProductName', numberOfColumns: 3, titleText: '商品信息' },
+              { startColumnName: 'SumAmount', numberOfColumns: 4, titleText: '销量信息' },
+            ]
+        });
+        //默认添加13行 空行
+        for (var i = 1; i < 13; i++) {
+            var rowdata = {
+                Id: '<input name="Id" type="text" class="editable center" />',
+                ProductName: '<div class="product"><input name="ProductName" readonly type="text" class="editable" isvalid="no" checkexpession="NotNull"/><span class="ui-icon-ellipsis goodsname"></span></div>',
+                ProductCode: '<input name="ProductCode" type="text" class="editable center disabled" /><input name="ProductId" type="hidden" />',
+                UnitPrice: '<input name="UnitPrice" type="text" class="editable center" />',
+                SumAmount: '<input name="SumAmount" type="text" class="editable center" />',
+                SumCount: '<input name="SumCount" type="text" class="editable center decimal" />',
+                YuCount: '<input name="YuCount" type="text" class="editable center decimal" />',
+                SaleCount: '<input name="SaleCount" type="text" class="editable center decimal" />',
+                Sort: '<input name="Sort" type="text" class="editable center" />',
+                Description: '<input name="Description" type="text" class="editable center" />',
+                PlusDelete: '<input readonly disabled="disabled" id="PlusDelete" class="editable center" type="text" style="cursor:pointer" datacol="No" err="删除"  />'
+            }
+            $grid.jqGrid('addRowData', i, rowdata);
+        };
+        $grid.find('.decimal').attr('onfocus', 'IsMoney(this.id)');
+        $grid.find('input').attr("disabled", "disabled");
+        $grid.find("tbody tr:eq(1)").find('input').removeAttr('disabled').attr("isvalid", "yes");
+        $grid.find('.disabled').attr("disabled", "disabled");
+        //商品名称事件
+        $('input[name="ProductName"]').focus(function () {
+            $('.goodsname').hide();
+            $(this).next('.goodsname').show();
+            $(this).Contextmenu();
+        });
+
+        //选择商品事件
+        $('.goodsname').click(function () {
+            var $ellipsis = $(this);
+            dialogOpen({
+                id: "OptionGoods",
+                title: '选择商品',
+                url: '/BaseManage/POS_Product/POS_ProductIndex',
+                width: "1200px",
+                height: "600px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick(function (datas) {
+                        var currRow = $ellipsis.parents('[role=row]').prev();
+                        for (var i = 0; i < datas.length; i++) {
+                            var data = datas[i];
+                            if ($('#gridTable').find('[data-value="' + data.ProductId + '"]').length == 0) {
+                                var nextRow = currRow.next();
+                                nextRow.find('input[name="ProductName"]').val(data.ProductName);
+                                nextRow.find('input[name="ProductCode"]').val(data.ProductCode).attr('data-value', data.ProductId);
+                                nextRow.find('input[name="ProductId"]').val(data.ProductId);
+                                nextRow.find('input[name="UnitPrice"]').val('0.00');
+                                nextRow.find('input[name="SumAmount"]').val('0.00');
+                                nextRow.find('input[name="SumCount"]').val('0');
+                                nextRow.find('input[name="YuCount"]').val('0');
+                                nextRow.find('input[name="SaleCount"]').val('0');
+                                nextRow.find('input[id="PlusDelete"]').val("删除").removeAttr("disabled");
+                                nextRow.find('input').removeAttr('disabled').attr("isvalid", "yes");
+                                nextRow.next().find('input').removeAttr('disabled');
+                                currRow = nextRow;
+                            }
+                        }
+                    });
+                },
+                btn: ['确认选中', '关闭']
+            });
+        });
+
+        //删除信息文本框点击事件
+        $("#gridTable tbody tr").find('input[id="PlusDelete"]').click(function () {
+            if ($(this).attr('disabled') == 'disabled') {
+                return false;
+            }
+            var KeyValue = $(this).parent().parent().find('input[name="ProductName"]').find('input').val()
+            if (KeyValue != "") {
+                var currtr = $(this).parent().parent();
+                dialogConfirm('您确认要删除此数据吗？', function (r) {
+                    if (r) {
+                        currtr.remove();
+                        GetTotal();
+                        dialogMsg("操作成功", 1);
+                    }
+                });
+            }
+        });
+
+        //价格文本框事件
+        $grid.find('.decimal').click(function () {
+            $(this).select();
+        });
+        //价格文本框换算
+        $grid.find('.decimal').keyup(function () {
+            var _inputName = $(this).attr('name');
+            var $SumCount = $(this).parents('[role=row]').find('input[name="SumCount"]');                    //数量
+            var $YuCount = $(this).parents('[role=row]').find('input[name="YuCount"]');                //单价
+            var $SaleCount = $(this).parents('[role=row]').find('input[name="SaleCount"]');              //金额
+            //数量*单价=金额
+            $SaleCount.val(toDecimal($SumCount.val() - $YuCount.val()));
+            GetTotal();
+        });
+    }
+
+    //合计
+    function GetTotal() {
+        var SumTotalAmount = 0.00, SumTotalCount = 0.00, SumYuCount = 0.00, SumSaleCount = 0.00;
+        $("#gridTable").find("tbody tr").each(function (i) {
+            var SumAmount = $(this).find('td:eq(5)').find('input').val();
+            if (SumAmount != "" && SumAmount != undefined) {
+                SumTotalAmount += Number(SumAmount);
+            }
+            var SumCount = $(this).find('td:eq(6)').find('input').val();
+            if (SumCount != "" && SumCount != undefined) {
+                SumTotalCount += Number(SumCount);
+            }
+            var YuCount = $(this).find('td:eq(7)').find('input').val();
+            if (YuCount != "" && YuCount != undefined) {
+                SumYuCount += Number(YuCount);
+            }
+            var SaleCount = $(this).find('td:eq(8)').find('input').val();
+            if (SaleCount != "" && SaleCount != undefined) {
+                SumSaleCount += Number(SaleCount);
+            }
+        });
+        $("#SumTotalAmount").text(toDecimal(SumTotalAmount));
+        $("#SumTotalCount").text(toDecimal(SumTotalCount));
+        $("#SumYuCount").text(toDecimal(SumYuCount));
+        $("#SumSaleCount").text(toDecimal(SumSaleCount));
+    }
+
+    //保存表单;
+    function AcceptClick(save_Mode) {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+
+        var strChildEntitys = [];
+        $('#gridTable').find('[role=row]').each(function (i) {
+            if (!!$(this).find('input[name="ProductCode"]').val()) {
+                strChildEntitys.push({
+                    Id: $(this).find('input[name="Id"]').val(),
+                    ProductId: $(this).find('input[name="ProductId"]').val(),
+                    ProductCode: $(this).find('input[name="ProductCode"]').val(),
+                    ProductName: $(this).find('input[name="ProductName"]').val(),
+                    UnitPrice: $(this).find('input[name="UnitPrice"]').val(),
+                    SumAmount: $(this).find('input[name="SumAmount"]').val(),
+                    SumCount: $(this).find('input[name="SumCount"]').val(),
+                    YuCount: $(this).find('input[name="YuCount"]').val(),
+                    SaleCount: $(this).find('input[name="SaleCount"]').val(),
+                    Sort: $(this).find('input[name="Sort"]').val(),
+                    Description: $(this).find('input[name="Description"]').val(),
+                    SortCode: i
+                });
+            }
+        });
+
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData["SumTotalAmount"] = $("#SumTotalAmount").text();
+        postData["SumTotalCount"] = $("#SumTotalCount").text();
+        postData["SumYuCount"] = $("#SumYuCount").text();
+        postData["SumSaleCount"] = $("#SumSaleCount").text();
+        postData["strChildEntitys"] = JSON.stringify(strChildEntitys);
+
+        $.ConfirmAjax({
+            msg: "注：您确认要保存此操作吗？",
+            url: "../../CustomerManage/Sale_Customer/SaveForm?keyValue=" + keyValue,
+            param: { "strEntity": JSON.stringify(postData), "strChildEntitys": JSON.stringify(strChildEntitys) },
+            success: function (data) {
+                if (save_Mode == 1) {
+                    reload();
+                } else {
+                    top.$.removeTab('closeCurrent');
+                }
+            }
+        });
+    }
+</script>
+<div class="bills">
+    <table class="form" style="width: 100%;margin-bottom: 10px;">
+        <tr>
+            <th class="formTitle" style="width: 60px;">公司名称</th>
+            <td class="formValue">
+                <div id="CustomerId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                <input id="CustomerCompany" type="hidden" class="form-control" />
+            </td>
+            <th class="formTitle">添加人<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="CreateUserId" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                <input id="CreateUserName" type="hidden" class="form-control" />
+            </td>
+            <th class="formTitle" style="width: 60px;">添加时间</th>
+            <td class="formValue"><input id="CreateDate" type="text" class="form-control"></td>
+            <th class="formTitle">更新人<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="ModifyUserId" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                <input id="ModifyUserName" type="hidden" class="form-control" />
+            </td>
+            <th class="formTitle" style="width: 60px;">修改日期</th>
+            <td class="formValue"><input id="ModifyDate" type="text" class="form-control"></td>
+        </tr>
+    </table>
+    <div class="gridPanel">
+        <table id="gridTable"></table>
+    </div>
+    <textarea id="Remark" placeholder="暂无备注信息" class="form-control" style="width: 100%; height: 50px; margin-top: 10px;"></textarea>
+</div>
+
+<div id="bottomField">
+    <a id="savaAndAdd" class="btn btn-success" onclick="AcceptClick(1)">保存并新增</a>
+    <a id="save" class="btn btn-default" onclick="AcceptClick(2)">保存单据</a>
+</div>

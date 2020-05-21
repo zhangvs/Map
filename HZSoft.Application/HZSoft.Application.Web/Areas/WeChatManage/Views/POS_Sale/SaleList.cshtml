@@ -1,0 +1,113 @@
+﻿@using HZSoft.Application.Entity.CustomerManage
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name='apple-touch-fullscreen' content='yes' />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no" />
+    <link href="../../../../Content/Styles/stylelist.css" rel="stylesheet" type="text/css" />
+    <script src="~/Content/scripts/jquery/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <title>销售订单记录</title>
+    <style>
+        #searchName {
+            border: solid 1px #ccc;
+            font-size: 100%;
+            -webkit-border-radius: 2.5em;
+            width: 60%;
+            height: 1.6em;
+            line-height: 1.6em;
+            background: #ccc;
+            padding-left: 0.8em;
+        }
+
+        .btn {
+            width: 3.2em;
+            height: 2.2em;
+            line-height: 2em;
+            border: solid 1px #ccc;
+            background: #fefefe;
+            -webkit-border-radius: 0.5em;
+        }
+
+        .deal-price {
+            color: #06c1ae;
+            font-size: .35rem;
+            margin-right: .04rem;
+        }
+
+        .deal-origin-price {
+            margin-left: .04rem;
+            font-size: .24rem;
+            color: #666;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header style="color:#333">
+        <div onclick="window.history.back(-1);" class="return fl"></div>
+
+        <input type="hidden" id="officeId" name="officeId" value="@ViewBag.officeId" />
+        <input type="text" id="searchName" name="searchName" placeholder="输入公司名称" />
+        <button type="button" onclick="formSearch()" class="btn" id="search-submit">
+            搜索
+        </button>
+        <a href="SaleForm" class="icon_map fr"><img class="fl" src="../../../../Content/Images/btn_tjsl1.png" style="" /></a>
+
+        <a href="#Top"> </a>
+    </header>
+    <ul class="qcmr_list" style="margin-bottom: 50px;">
+        @{
+            List<Sales_ContractEntity> saleList = ViewBag.listgt;
+
+            foreach (var bl in saleList)
+            {
+                <li>
+                    <a href="SaleForm?keyValue=@bl.Id">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td align="left" class="tit" style="padding-left: 5px;font-weight:bold" id="tr_address">
+                                    <a href="/WeChatManage/OfficeCompany/AddOfficeCompany?keyValue=@bl.CustomerId">
+                                        @bl.CustomerCompany<br />
+                                    </a>
+                                </td>
+                                <td align="right" width="30%" class="clasic">
+                                    @bl.ContractDate.Value.ToString("yyyy-MM-dd")
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="70%" align="left" class="tit" style="font-size: 14px; line-height: 20px;
+                            padding-top: 5px;">
+                                    @Html.Raw(bl.SpareField)
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" align="right" width="30%" class="clasic">
+                                    总数量：@bl.TotalCount 总金额：@bl.TotalAmount
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" align="right" width="30%">
+                                    下单人：@bl.UserName
+                                </td>
+                            </tr>
+                        </table>
+                    </a>
+                </li>
+            }
+        }
+    </ul>
+    <nav>
+        <a href="/WeChatManage/WeiXinHome/GetMap" class="nav_sy">定位</a>
+        <a href="/WeChatManage/Shop/ShopList" class="nav_yz">店铺</a>
+        <a href="/WeChatManage/Office/OfficeList" class="nav_dd">写字楼</a>
+        <a href="/WeChatManage/OfficeCompany/OfficeCompanyList" class="nav_fw">公司</a>
+        <a href="/WeChatManage/POS_Sale/SaleList" class="nav_sr">订单</a>
+    </nav>
+</body>
+</html>

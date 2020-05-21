@@ -1,0 +1,166 @@
+@{;
+    ViewBag.Title = "列表页面";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>;
+    var SeeDate = request('SeeDate');
+    var StartTime = request('StartTime');
+    var EndTime = request('EndTime');
+    var SeeUserName = unescape(request('SeeUserName'));
+    $(function () {
+        InitialPage();
+        GetGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设布局;
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $('#gridTable').setGridHeight($(window).height() - 136.5);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载表格
+    function GetGrid() {
+        var queryJson = {};
+        queryJson.SeeDate = SeeDate;
+        queryJson.StartTime = StartTime;
+        queryJson.EndTime = EndTime;
+        queryJson.SeeUserName = SeeUserName;
+
+        var selectedRowIndex = 0;
+        var $gridTable = $('#gridTable');
+        $gridTable.jqGrid({
+            autowidth: true,
+            height: $(window).height() - 136.5,
+            url: "../../CustomerManage/Ku_CompanySee/GetPageListJson",
+            postData: { queryJson: JSON.stringify(queryJson) },
+            datatype: "json",
+            colModel: [
+                { label: '主键', name: 'Id', hidden: true },
+                { label: '公司名称Id', name: 'CompanyId', hidden: true },
+                { label: '公司名称', name: 'CompanyName', index: 'CompanyName', width: 350, align: 'left',sortable: true  },
+                { label: '查看日期', name: 'SeeDate', index: 'SeeDate', width: 150, align: 'left',sortable: true  },
+                { label: '查看用户', name: 'SeeUserName', index: 'SeeUserName', width: 150, align: 'left',sortable: true  },
+            ],
+            viewrecords: true,
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'SeeDate',
+            sortorder: 'desc',
+            rownumbers: true,
+            shrinkToFit: false,
+            gridview: true,
+            onSelectRow: function () {
+                selectedRowIndex = $('#' + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $('#' + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                CompanyName: $("#txt_Keyword").val()
+            }
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) }, page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: 'Form',
+            title: '添加公司浏览记录',
+            url: '/CustomerManage/Ku_CompanySee/Ku_CompanySeeForm',
+            width: '300px',
+            height: '300px',
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    }
+    //编辑
+    function btn_edit() {
+        var keyValue = $('#gridTable').jqGridRowValue( 'Id');
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: 'Form',
+                title: '编辑公司浏览记录',
+                url: '/CustomerManage/Ku_CompanySee/Ku_CompanySeeForm?keyValue=' + keyValue,
+                width: '300px',
+                height: '300px',
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            })
+        }
+    }
+    //删除
+    function btn_delete() {
+        var keyValue = $('#gridTable').jqGridRowValue( 'Id');
+        if (keyValue) {
+            $.RemoveForm({
+                url: '../../CustomerManage/Ku_CompanySee/RemoveForm',
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $('#gridTable').trigger('reloadGrid');
+                }
+            })
+        } else {
+            dialogMsg('请选择需要删除的公司浏览记录！', 0);
+        }
+    }
+    //详情
+    function btn_detail() {
+        var CompanyId = $('#gridTable').jqGridRowValue('CompanyId');
+        if (checkedRow(CompanyId)) {
+            dialogOpen({
+                id: 'Form',
+                title: '公司信息',
+                url: '/CustomerManage/Ku_Company/Ku_CompanyForm?keyValue=' + CompanyId,
+                width: '700px',
+                height: '600px',
+                btn: []
+            })
+        }
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-replace" class="btn btn-default" onclick="reload()"><i class="fa fa-refresh"></i>&nbsp;刷新</a>
+            <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;编辑</a>
+            <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            <a id="lr-detail" class="btn btn-default" onclick="btn_detail()"><i class="fa fa-list-alt"></i>&nbsp;公司详细</a>
+        </div>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

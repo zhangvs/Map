@@ -1,0 +1,574 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>我的桌面</title>
+    <!--框架必需start-->
+    @*<link href="~/Content/styles/hzsoft-ui.css" rel="stylesheet" />*@
+    <script src="~/Content/Scripts/jquery/jquery-1.10.2.min.js"></script>
+    <link href="~/Content/styles/font-awesome.min.css" rel="stylesheet" />
+    @*<script src="~/Content/Scripts/utils/hzsoft-ui.js"></script>*@
+    @System.Web.Optimization.Styles.Render("~/Content/styles/hzsoft-ui.css")
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/utils/js")
+    <!--框架必需end-->
+    <!--第三方统计图start-->
+    <script src="~/Content/Scripts/plugins/highcharts/highcharts.js"></script>
+    <script src="~/Content/Scripts/plugins/highcharts/highcharts-more.js"></script>
+    <script src="~/Content/Scripts/plugins/highcharts/modules/exporting.js"></script>
+    <!--第三方统计图end-->
+    <script src="~/Content/scripts/plugins/charts/Chart.js"></script>
+    <script>
+        $(function () {
+            InitialPage();
+            $(".termName").text('本周新增');
+            LoadAreaWeekPie('本周新增', '@ViewBag.ThisWeekStartTime', '@ViewBag.ThisWeekEndTime');
+            LoadSectorWeekPie('本周新增', '@ViewBag.ThisWeekStartTime', '@ViewBag.ThisWeekEndTime');
+            LoadPoiTypeBar('本周新增', '@ViewBag.ThisWeekStartTime', '@ViewBag.ThisWeekEndTime');
+            LoadMonthLine();
+        })
+        function ClickStartEnd(name, StartTime, EndTime) {
+            $(".termName").text(name);
+            LoadAreaWeekPie(name, StartTime, EndTime);
+            LoadSectorWeekPie(name, StartTime, EndTime);
+            LoadPoiTypeBar(name, StartTime, EndTime);
+        }
+        //初始化
+        function InitialPage() {
+            $('#desktop').height($(window).height() - 22);
+            $(window).resize(function (e) {
+                window.setTimeout(function () {
+                    $('#desktop').height($(window).height() - 22);
+                }, 200);
+                e.stopPropagation();
+            });
+            //$.ajax({
+            //    type: "POST",
+            //    url: "/ReportManage/Dms/GetCompanyCountData",
+            //    success: function (data) {
+            //        if (data) {
+            //            var result = JSON.parse(data);
+            //            $(".number:eq(0)").html(result[0].thisweek);
+            //            $(".number:eq(1)").html(result[0].lastweek);
+            //            $(".number:eq(2)").html(result[0].monthcount);
+            //            $(".number:eq(3)").html(result[0].yearcount);
+            //            $(".number:eq(4)").html(result[0].allcount);
+
+            //        }
+            //    },
+            //    error: function () {
+            //        layer.alert('错误', {
+            //            skin: 'layui-layer-molv', closeBtn: 0
+            //        });
+            //    }
+            //});
+        }
+
+
+
+        //区县饼图
+        function LoadAreaWeekPie(name, StartTime, EndTime) {
+            var chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'piecontainer',
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    defaultSeriesType: 'pie'
+                },
+                title: {
+                    text: ''
+                },
+                exporting: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.point.name + '</b>: ' + parseFloat(this.percentage.toFixed(2)) + ' %';
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true, //点击切换
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function () {
+                                return '<b>' + this.point.name + '</b>: ' + this.point.y;
+                            }
+                        },
+                        showInLegend: true,
+                        events: {
+                            click: function (e) {
+                                OpenNav(e.point.y, name + e.point.name + '企业分布', StartTime, EndTime, e.point.name)
+                            }
+                        },
+                    }
+                },
+                series: [{
+                    data: []
+                }]
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "/ReportManage/Dms/GetWeekAreaData",
+                data:{"start":StartTime,"end":EndTime},
+                success: function (data) {
+                    if (data) {
+                        var seriesData = new Array();
+                        var result = JSON.parse(data);
+                        for (var j = 0; j < result.length; j++) {
+                            seriesData[j] = new Array();
+                            seriesData[j][0] = result[j].district;
+                            seriesData[j][1] = result[j].count;
+                        }
+                        chart.series[0].setData(seriesData);
+                    }
+                },
+                error: function () {
+                    layer.alert('错误', {
+                        skin: 'layui-layer-molv', closeBtn: 0
+                    });
+                }
+            });
+        }
+        //本周行业饼图
+        function LoadSectorWeekPie(name, StartTime, EndTime) {
+            var chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'piecontainer2',
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    defaultSeriesType: 'pie'
+                },
+                title: {
+                    text: ''
+                },
+                exporting: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.point.name + '</b>: ' + parseFloat(this.percentage.toFixed(2)) + ' %';
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true, //点击切换
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function () {
+                                return '<b>' + this.point.name + '</b>: ' + this.point.y;
+                            }
+                        },
+                        showInLegend: true,
+                        events: {
+                            click: function (e) {
+                                OpenNav(e.point.y, name + e.point.name + '企业分布', StartTime, EndTime, '', e.point.name)
+                            }
+                        },
+                    }
+                },
+                series: [{
+                    data: []
+                }]
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "/ReportManage/Dms/GetWeekSectorData",
+                data:{"start":StartTime,"end":EndTime},
+                success: function (data) {
+                    if (data) {
+                        var seriesData = new Array();
+                        var result = JSON.parse(data);
+                        for (var j = 0; j < result.length; j++) {
+                            seriesData[j] = new Array();
+                            seriesData[j][0] = result[j].sector;
+                            seriesData[j][1] = result[j].count;
+                        }
+                        chart.series[0].setData(seriesData);
+                    }
+                },
+                error: function () {
+                    layer.alert('错误', {
+                        skin: 'layui-layer-molv', closeBtn: 0
+                    });
+                }
+            });
+        }
+        //POI类别柱状图
+        function LoadPoiTypeBar(name, StartTime, EndTime) {
+            $('#PoiType').highcharts({
+                chart: {
+                    type: 'column',
+                    events: {
+                        click: function (e) {
+                            var x = e.xAxis[0];
+                        }
+                    },
+                },
+                title: {
+                    text: ''
+                },
+                xAxis: {
+                    categories: []
+                },
+                yAxis: {
+                    title: {
+                        text: '数量'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value + '个'
+                        }
+                    }
+                },
+                exporting: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                tooltip: {
+                    crosshairs: true,
+                    shared: true
+                },
+                plotOptions: {
+                    series: {
+                        allowPointSelect: true, //点击切换
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function () {
+                                return this.point.y;
+                            }
+                        },
+                        showInLegend: true,
+                        events: {
+                            click: function (e) {
+                                OpenNav(e.point.y, name + e.point.name + '企业分布', StartTime, EndTime,'','', e.point.name)
+                            }
+                        },
+                    },
+                    spline: {
+                        marker: {
+                            radius: 4,
+                            lineColor: '#666666',
+                            lineWidth: 1
+                        }
+                    },
+                },
+                series: [{
+                    name: name+'坐标POI类别',
+                    marker: {
+                        symbol: 'square'
+                    },
+                    data: []
+
+                }]
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "/ReportManage/Dms/GetPoiTypeData",
+                data: { "start": StartTime, "end": EndTime },
+                success: function (data) {
+                    if (data) {
+                        var seriesData = new Array();
+                        var result = JSON.parse(data);
+                        for (var j = 0; j < result.length; j++) {
+                            seriesData[j] = new Array();
+                            seriesData[j][0] = result[j].typename;
+                            seriesData[j][1] = result[j].count;
+                            seriesData[j][2] = result[j].typecode;
+                        }
+                        $('#PoiType').highcharts().series[0].setData(seriesData);
+                    }
+                },
+                error: function () {
+                    layer.alert('错误', {
+                        skin: 'layui-layer-molv', closeBtn: 0
+                    });
+                }
+            });
+        }
+
+        //月份报表
+        function LoadMonthLine() {
+            $('#MonthLine').highcharts({
+                chart: {
+                    type: 'spline'
+                },
+                title: {
+                    text: ''
+                },
+                xAxis: {
+                    categories: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                },
+                yAxis: {
+                    title: {
+                        text: '数量'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value + '个'
+                        }
+                    }
+                },
+                exporting: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                tooltip: {
+                    crosshairs: true,
+                    shared: true
+                },
+                plotOptions: {
+                    series: {
+                        allowPointSelect: true, //点击切换
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function () {
+                                return this.point.y;
+                            }
+                        },
+                        showInLegend: true,
+                        events: {
+                            click: function (e) {
+                                var myDate = new Date();
+                                var nowYear = myDate.getFullYear();
+                                //var nowMonth = myDate.getMonth();
+                                var day = new Date(nowYear, e.point.name, 0);//构造一个日期对象
+                                daycount = day.getDate();//获取天数
+                                OpenNav(e.point.y, e.point.name + '月企业分布', nowYear + '-' + e.point.name + '-01', nowYear + '-' + e.point.name + '-' + daycount)
+                            }
+                        },
+                    },
+                    spline: {
+                        marker: {
+                            radius: 4,
+                            lineColor: '#666666',
+                            lineWidth: 1
+                        }
+                    },
+                },
+                series: [{
+                    name: '新增公司数量',
+                    marker: {
+                        symbol: 'square'
+                    },
+                    data: []
+
+                }]
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "/ReportManage/Dms/GetCompanyYearData",
+                success: function (data) {
+                    if (data) {
+                        var seriesData = new Array();
+                        var result = JSON.parse(data);
+                        for (var j = 0; j < result.length; j++) {
+                            seriesData[j] = new Array();
+                            seriesData[j][0] = result[j].month;
+                            seriesData[j][1] = result[j].count;
+                        }
+                        $('#MonthLine').highcharts().series[0].setData(seriesData);
+                    }
+                },
+                error: function () {
+                    layer.alert('错误', {
+                        skin: 'layui-layer-molv', closeBtn: 0
+                    });
+                }
+            });
+        }
+
+        //跳转到指定模块菜单
+        function OpenNav(id, title, StartTime, EndTime, District, Sector, TypeName) {
+            var des = "@HZSoft.Application.Code.OperatorProvider.Provider.Current().Description"
+            if (!!des) {
+                var pattern1 = /[\u4e00-\u9fa5]+/g;
+                content = des.match(pattern1);
+                if (content == null) {
+                    top.tablist.newTab({
+                        id: id, title: title, closed: true, icon: "fa fa-bank",
+                        url: "/ReportManage/Report/dms_radius?StartTime=" + StartTime + "&EndTime=" + EndTime + "&District=" + escape(District) + "&Sector=" + escape(Sector) + "&TypeName=" + escape(TypeName)
+                    });
+                }
+                else {
+                    top.tablist.newTab({
+                        id: id, title: title, closed: true, icon: "fa fa-bank",
+                        url: "/ReportManage/Report/dms_area?StartTime=" + StartTime + "&EndTime=" + EndTime + "&District=" + escape(District) + "&Sector=" + escape(Sector) + "&TypeName=" + escape(TypeName)
+                    });
+                }
+            }
+            else {
+                //关闭公司库搜索
+                top.$.removeTab('b499a057-4fff-47b1-8768-76524d888220');
+                //打开公司库搜索
+                top.tablist.newTab({
+                    id: 'b499a057-4fff-47b1-8768-76524d888220', title: title, closed: true, icon: "fa fa-bank",
+                    url: "/CustomerManage/Ku_Company/Ku_CompanyIndex?StartTime=" + StartTime + "&EndTime=" + EndTime + "&District=" + escape(District) + "&Sector=" + escape(Sector) + "&TypeName=" + escape(TypeName)
+                });
+            }
+
+        }
+</script>
+</head>
+<body >
+    <div class="border" id="desktop" style="margin: 10px 10px 0 10px; background: #fff; overflow: auto;">
+        <div class="portal-panel">
+            <div class="row">
+                <div class="portal-panel-title">
+                    <i class="fa fa-balance-scale"></i>&nbsp;&nbsp;统计指标
+                </div>
+                <div class="portal-panel-content" style="margin-top: 15px; overflow: hidden;">
+                    <div class="row">
+                        <div style="width: 20%; position: relative; float: left;">
+                            <div class="task-stat" style="background-color: #3598dc;">
+                                <div class="VisualDetails" style="cursor:pointer" onclick="ClickStartEnd('全部')">
+                                    <div class="visual">
+                                        <i class="fa fa-pie-chart"></i>
+                                    </div>
+                                    <div class="details">
+                                        <div class="number">
+                                            全部 @ViewBag.AllCount 家
+                                        </div>
+                                    </div>
+                                </div>
+                                <a class="more" style="background-color: #258fd7;" href="javascript:;" onclick="OpenNav(5, '公司总数')">
+                                    查看详情 <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div style="width: 20%; position: relative; float: left;">
+                            <div class="task-stat" style="background-color: #8775a7;">
+                                <div class="VisualDetails" style="cursor:pointer" onclick="ClickStartEnd('本年新增','@ViewBag.YearStartTime','@ViewBag.YearEndTime')">
+                                    <div class="visual">
+                                        <i class="fa fa-pie-chart"></i>
+                                    </div>
+                                    <div class="details">
+                                        <div class="number">
+                                            本年新增 @ViewBag.YearCount 家
+                                        </div>
+                                    </div>
+                                </div>
+                                <a class="more" style="background-color: #7c699f;" href="javascript:;" onclick="OpenNav(4,'本年新增','@ViewBag.YearStartTime','@ViewBag.YearEndTime')">
+                                    查看详情 <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div style="width: 20%; position: relative; float: left;">
+                            <div class="task-stat" style="background-color: #44b6ae;">
+                                <div class="VisualDetails" style="cursor:pointer" onclick="ClickStartEnd('本月新增','@ViewBag.MonthStartTime','@ViewBag.MonthEndTime')">
+                                    <div class="visual">
+                                        <i class="fa fa-pie-chart"></i>
+                                    </div>
+                                    <div class="details">
+                                        <div class="number">
+                                            本月新增 @ViewBag.MonthCount 家
+                                        </div>
+                                    </div>
+                                </div>
+                                <a class="more" style="background-color: #3ea7a0;" href="javascript:;" onclick="OpenNav(3, '本月新增','@ViewBag.MonthStartTime','@ViewBag.MonthEndTime')">
+                                    查看详情 <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        @*<div style="width: 20%; position: relative; float: left;">
+                            <div class="task-stat" style="background-color: #578ebe;">
+                                <div class="VisualDetails" onclick="ClickStartEnd('上周新增','@ViewBag.LastWeekStartTime','@ViewBag.LastWeekEndTime')">
+                                    <div class="visual">
+                                        <i class="fa fa-pie-chart"></i>
+                                    </div>
+                                    <div class="details">
+                                        <div class="number">
+                                            上周新增 @ViewBag.LastWeek 家
+                                        </div>
+                                    </div>
+                                </div>
+                                <a class="more" style="background-color: #4884b8;" href="javascript:;" onclick="OpenNav(2, '上周新增','@ViewBag.LastWeekStartTime','@ViewBag.LastWeekEndTime')">查看详情 <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>*@
+                        <div style="width: 20%; position: relative; float: left;">
+                            <div class="task-stat" style="background-color: #e35b5a;">
+                                <div class="VisualDetails" style="cursor:pointer" onclick="ClickStartEnd('本周新增','@ViewBag.ThisWeekStartTime','@ViewBag.ThisWeekEndTime')">
+                                    <div class="visual">
+                                        <i class="fa fa-pie-chart"></i>
+                                    </div>
+                                    <div class="details">
+                                        <div class="number">
+                                            本周新增 @ViewBag.ThisWeek 家
+                                        </div>
+                                        @*<div class="desc">
+                                            本周新增
+                                        </div>*@
+                                    </div>
+                                </div>
+                                <a class="more" style="background-color: #e04a49;" href="javascript:;" onclick="OpenNav(1, '本周新增','@ViewBag.ThisWeekStartTime','@ViewBag.ThisWeekEndTime')">
+                                    查看详情 <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="overflow: hidden; height: 460px;">
+                <div style="width: 50%; float: left;">
+                    <div class="portal-panel-title">
+                        <i class="fa fa-bar-chart"></i>&nbsp;&nbsp;<span class="termName fa"></span>区县分布图
+                    </div>
+                    <div class="portal-panel-content" style="margin-top: 10px; overflow: hidden;">
+                        <div id="piecontainer">
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 50%; float: left;">
+                    <div class="portal-panel-title">
+                        <i class="fa fa-bar-chart"></i>&nbsp;&nbsp;<span class="termName fa"></span>行业分布图
+                    </div>
+                    <div class="portal-panel-content" style="margin-top: 10px; overflow: hidden;">
+                        <div id="piecontainer2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="overflow: hidden; height: 460px;">
+                <div style="width: 100%; float: left;">
+                    <div class="portal-panel-title">
+                        <i class="fa fa-bar-chart"></i>&nbsp;&nbsp;<span class="termName fa"></span>坐标POI类别
+                    </div>
+                    <div class="portal-panel-content" style="margin-top: 10px; overflow: hidden;">
+                        <div id="PoiType"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="overflow: hidden; height: 460px;display:none">
+                <div style="width: 100%; float: left;">
+                    <div class="portal-panel-title">
+                        <i class="fa fa-bar-chart"></i>&nbsp;&nbsp;各月新增数量曲线图
+                    </div>
+                    <div class="portal-panel-content" style="margin-top: 10px; overflow: hidden;">
+                        <div id="MonthLine"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

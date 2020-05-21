@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>写字楼详情</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name='apple-touch-fullscreen' content='yes' />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no" />
+
+    <script src="~/Content/scripts/jquery/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <link href="~/Content/css/stylelistLogin.css" rel="stylesheet" />
+    <link href="~/Content/layer2/mobile/need/layer.css" rel="stylesheet" />
+    <script src="~/Content/layer2/layer.js" type="text/javascript"></script>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/scripts/plugins/valide.js" type="text/javascript"></script>
+
+    <!--bootstrap组件start-->
+    <link href="~/Content/scripts/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <!--bootstrap组件end-->
+
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js",
+    "~/Content/scripts/plugins/tree/js",
+    "~/Content/scripts/plugins/validator/js",
+    "~/Content/scripts/plugins/datepicker/js",
+    "~/Content/scripts/utils/js")
+
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script type="text/javascript">
+        // 通过config接口注入权限验证配置
+        //步骤三：通过config接口注入权限验证配置
+        wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: '@ViewBag.JSSDKUiPackage.AppId',
+            timestamp: '@ViewBag.JSSDKUiPackage.Timestamp',
+            nonceStr: '@ViewBag.JSSDKUiPackage.NonceStr',
+            signature: '@ViewBag.JSSDKUiPackage.Signature',
+            jsApiList: ["chooseImage", "previewImage", "uploadImage", "downloadImage"]  // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+
+        // 步骤四：通过ready接口处理成功验证
+        wx.ready(function () {
+            //alert("wx.config success.");
+        });
+
+        wx.error(function (res) {
+            alert("wx.config failed.");
+            //alert(res);
+            // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，
+            // 也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+        });
+
+
+        // 图片接口
+        // 拍照、本地选图
+        var images = {
+            localId: [],
+            serverId: []
+        };
+        var keyValue = request('keyValue');
+        var currentLon = request('currentLon');
+        var currentLat = request('currentLat');
+        var address = request('address');
+
+        $(function () {
+            //获取表单
+            if (!!keyValue) {
+                $.SetForm({
+                    url: "../../WeChatManage/Office/GetFormJson",
+                    param: { keyValue: keyValue },
+                    success: function (data) {
+                        $("#form1").SetWebControls(data);
+                        $("#OfficePicture").attr("imgsrc", data.OfficePicture).html("<img src='" + data.OfficePicture + "' style='height:13em;' />");
+                        $("#GetMapUrl").attr("href", "/WeChatManage/WeiXinHome/GetMap?keyValue=" + keyValue);
+                    }
+                })
+            }
+
+
+            if (currentLon != "" && currentLat != "" && address != "") {
+                $("#OfficeAddress").val('@ViewBag.address');
+                $("#wxLon").val(@ViewBag.currentLon);
+                $("#wxLat").val(@ViewBag.currentLat);
+            }
+
+            $("#OfficePicture").click(function () {
+                wx.chooseImage({
+                    count: 1, // 默认9，这里每次只处理一张照片
+                    sizeType: ['original', 'compressed'],   // 可以指定是原图还是压缩图，默认二者都有
+                    sourceType: ['album', 'camera'],        // 可以指定来源是相册还是相机，默认二者都有
+                    success: function (res) {
+                        images.localId = res.localIds;      // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+
+                        var i = 0, length = images.localId.length;
+                        function upload() {
+                            wx.uploadImage({
+                                localId: images.localId[i],
+                                success: function (res) {
+                                    i++;
+                                    images.serverId.push(res.serverId);
+
+                                    //备注：上传图片有效期3天，可用微信多媒体接口下载图片到自己的服务器，此处获得的 serverId 即 media_id。根据它去微信服务器读取图片数据：
+                                    
+                                    var indata = { "media_id": res.serverId, "callback": "AddOffice", "folder": "OfficePicture" };
+                                    $.post("/WeChatManage/WeiXinHome/GetWxPic", indata, function (data) {
+                                        console.log(data);
+                                        if (data == '') {
+                                            layer.alert('上传失败:' + data.Message, {
+                                                skin: 'layui-layer-molv', closeBtn: 0
+                                            });
+                                        } else {
+                                            $("#OfficePicture").attr("imgsrc", data).html("<img src='" + data + "' style='height:13em;' />");
+                                        }
+                                    });
+
+                                    if (i < length) {
+                                        upload();
+                                    }
+                                },
+                                fail: function (res) {
+                                    alert(JSON.stringify(res));
+                                }
+                            });
+                        }
+                        upload();
+                    }
+                });
+            });
+        })
+
+        function saveForm() {
+            $("#ErrorMessage").html("");
+
+            var OfficePicture = $("#OfficePicture").attr("imgsrc");
+            var OfficeName = trim($("#OfficeName").val());
+            var SellerName = trim($("#SellerName").val());
+            var state =$("#State").val();
+
+            if (OfficeName == "" || OfficeName.length == 0) {
+                $("#ErrorMessage").html("写字楼名称不能为空!");
+                return;
+            } else if (OfficeName.length < 2) {
+                $("#ErrorMessage").html("写字楼名称不能少于2个汉字!");
+                return;
+            }
+
+            if (typeof (OfficePicture) == "undefined") {
+                $("#ErrorMessage").html("写字楼照片必须上传!");
+                return;
+            }
+
+            if (SellerName == "" || SellerName.length == 0) {
+                $("#ErrorMessage").html("拜访者不能为空!");
+                return;
+            } else if (SellerName.length < 2) {
+                $("#ErrorMessage").html("拜访者不能少于2个汉字!");
+                return;
+            }
+
+            var index = layer.load(0, { shade: false });
+            var queryJson = $("#filter-form").GetWebControls();
+            queryJson.OfficePicture = OfficePicture;
+
+            $.ajax({
+                url: "/WeChatManage/Office/AddOffice?keyValue=" + keyValue,
+                type: "POST",
+                data: queryJson,
+                success: function (responseText) {
+                    layer.close(index);
+                    if (responseText == "true") {
+                        $("#OfficeId").val(responseText.Id)
+                        layer.alert('保存成功！', {
+                            skin: 'layui-layer-lan', closeBtn: 0
+                        });
+                        var url = "/WeChatManage/Office/OfficeList";
+                        location.href = url;
+                    }
+                    else {
+                        layer.alert('未知错误，请联系客服', {
+                            skin: 'layui-layer-molv', closeBtn: 0
+                        });
+                    }
+                },
+                error: function () {
+
+                }
+            });
+        }
+    </script>
+
+
+</head>
+
+
+<body>
+    <header class="headerbg2" style="height:3rem;line-height:3rem">
+        <div class="return header_tit" style="font-size:1.5em;color:#fff;">
+            <img src="/Content/images/btn_return.png" onclick="window.history.back(-1);" style="float:left;height: 30px; margin-bottom: 5px;" />写字楼编辑
+        </div>
+    </header>
+    <form id="form1">
+        <div class="container">
+            <div id="filter-form">
+
+                <div class="row">
+                    定位 <font style="color:red">*</font>
+                    <br />
+                    <div class="col-xs-3">
+                        <a id="GetMapUrl" href="~/WeChatManage/WeiXinHome/GetMap"><img src="~/Content/images/location.jpg" /></a>
+                    </div>
+                    <div class="col-xs-9">
+                        <textarea class="form-control" id="OfficeAddress" rows="3"></textarea>
+                        <input type="hidden" class="form-control" id="wxLon">
+                        <input type="hidden" class="form-control" id="wxLat">
+                    </div>
+                </div>
+                <br />
+
+                <label for="OfficeName">写字楼名称 <font style="color:red">*</font></label>
+                <input type="hidden" id="OfficeId">
+                <input type="text" class="form-control" id="OfficeName" placeholder="请输入写字楼名称">
+                <br />
+                <label for="SellerName">上传人 <font style="color:red">*</font></label>
+                <input type="text" class="form-control" id="SellerName" placeholder="请输入拜访者" value="@ViewBag.SellerName">
+                <input type="hidden" id="SellerId" value="@ViewBag.SellerId">
+
+                <br />
+
+                写字楼图片 <font style="color:red">*</font>
+                <br />
+                <div class="layui-upload-drag" id="OfficePicture">
+                    <i class="layui-icon"></i>
+                    <p>点击上传写字楼图片</p>
+                </div>
+                <br />
+                <br />
+                <p class="text-danger" id="ErrorMessage"></p>
+
+                <button type="button" class="btn btn-primary" onclick="saveForm()">保存</button>
+                <br />
+                <br />
+            </div>
+        </div>
+     </form>
+</body>
+</html>

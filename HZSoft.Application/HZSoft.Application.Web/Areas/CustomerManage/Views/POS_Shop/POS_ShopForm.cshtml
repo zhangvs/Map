@@ -1,0 +1,213 @@
+@{;
+    ViewBag.Title = "表单页面";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<link href="~/Content/Scripts/cloud-zoom/cloud-zoom.css" rel="stylesheet" />
+<script src="~/Content/Scripts/cloud-zoom/cloud-zoom.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+        Zoomhover($(".probox img"), $(".hoverbox"), $(".showbox img"));
+    });
+    //初始化控件
+    function initControl() {
+        //销售人员
+        $("#SellerId").ComboBoxTree({
+            url: "../../BaseManage/User/GetTreeJson",
+            description: "==请选择==",
+            height: "250px",
+            width: "200px"
+        }).bind("change", function () {
+            $("#SellerName").val($(this).attr('data-text'));
+        });
+        //跟进状态
+        $("#State").ComboBox({
+            url: "../../SystemManage/DataItemDetail/GetDataItemListJson",
+            param: { EnCode: "FollowState" },
+            id: "ItemValue",
+            text: "ItemName",
+            description: "=请选择=",
+            height: "200px"
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CustomerManage/POS_Shop/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $("#BuildTime").val(formatDate(data.BuildTime, "yyyy-MM-dd"));
+                    $('.thumb').attr("src", data.ShopPicture);
+                }
+            })
+        }
+    }
+    //保存表单;
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        $.SaveForm({
+            url: "../../CustomerManage/POS_Shop/SaveForm?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <td class="formTitle"></td>
+            <td class="formValue">
+                <input id="ShopPicture" type="hidden" class="form-control" />
+                <div class="imgbox">
+                    <div class="probox">
+                        <img class="thumb" src="~/Content/Images/goods1.jpg" />
+                        <div class="hoverbox"></div>
+                    </div>
+                    <div class="showbox">
+                        <img class="thumb" src="~/Content/Images/goods1.jpg" />
+                    </div>
+                </div>
+            </td>
+
+            <td class="formValue" colspan="2">
+                <table  class="form">
+                    <tr>
+                        <td class="formTitle">店铺名称<font face="宋体">*</font></td>
+                        <td class="formValue" colspan="3">
+                            <input id="ShopName" type="text" class="form-control"  isvalid="yes" checkexpession="NotNull"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="formTitle">合作状态<font face="宋体">*</font></td>
+                        <td class="formValue" colspan="3">
+                            <div id="State" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">店铺地址<font face="宋体">*</font></td>
+            <td class="formValue" colspan="3">
+                <input id="ShopAddress" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">成立时间</td>
+            <td class="formValue">
+                <input id="BuildTime" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker({maxDate:'%y-%M-%d'})">
+            </td>
+            <td class="formTitle">注册资本</td>
+            <td class="formValue">
+                <input id="Capital" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">面积</td>
+            <td class="formValue">
+                <input id="Area" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">人数</td>
+            <td class="formValue">
+                <input id="Employee" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">经营范围</td>
+            <td class="formValue" colspan="3">
+                <textarea id="Scope" maxlength="200" class="form-control" rows="3"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">联系人<font face="宋体">*</font></td>
+            <td class="formValue">
+                <table class="form">
+                    <tr>
+                        <td class="formValue">
+                            <input id="Contacts" type="text" class="form-control"  isvalid="yes" checkexpession="NotNull"/>
+                        </td>
+                        <td class="formValue">
+                            <div class="checkbox">
+                                <label>
+                                    <input id="IsBoss" type="checkbox" />
+                                    是否老板
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="formTitle">联系电话<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="Telphone" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">备用联系人</td>
+            <td class="formValue">
+                <input id="ContactsSpare" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">备用联系电话</td>
+            <td class="formValue">
+                <input id="TelphoneSpare" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">网站</td>
+            <td class="formValue">
+                <input id="Website" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">邮箱</td>
+            <td class="formValue">
+                <input id="Mailbox" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">上传人</td>
+            <td class="formValue">
+                <div id="SellerId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                <input id="SellerName" type="hidden" />
+            </td>
+            <td class="formTitle">上传微信</td>
+            <td class="formValue">
+                <input id="NickName" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">微信经度</td>
+            <td class="formValue">
+                <input id="wxLon" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">微信纬度</td>
+            <td class="formValue">
+                <input id="wxLat" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">百度经度</td>
+            <td class="formValue">
+                <input id="bdLon" type="text" class="form-control" />
+            </td>
+            <td class="formTitle">百度纬度</td>
+            <td class="formValue">
+                <input id="bdLat" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">备注</td>
+            <td class="formValue" colspan="3">
+                <textarea id="Description" maxlength="200" class="form-control" rows="2"></textarea>
+            </td>
+        </tr>
+
+    </table>
+</div>

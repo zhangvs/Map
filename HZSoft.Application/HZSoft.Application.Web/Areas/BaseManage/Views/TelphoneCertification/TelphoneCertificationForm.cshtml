@@ -1,0 +1,194 @@
+@{;
+    ViewBag.Title = "表单页面";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<link href="/Content/Scripts/plugins/uploadify/uploadify.css" rel="stylesheet" />
+<script src="/Content/Scripts/plugins/uploadify/jquery.uploadify.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        //uploadify();
+        initControl();
+    });
+    //初始化控件
+    function initControl() {
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../BaseManage/TelphoneCertification/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('#photo_z').attr("src", data.photo_z);
+                    $('#photo_b').attr("src", data.photo_b);
+                    $('#photo_s').attr("src", data.photo_s);
+                }
+            })
+        }
+    }
+    //保存表单;
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        $.SaveForm({
+            url: "../../BaseManage/TelphoneCertification/SaveForm?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        })
+    }
+    //上传图片
+    function uploadify() {
+        $("#imageURL1").uploadify({
+            uploader: '/PublicInfoManage/ResourceFile/UploadifyPicture?FolderId=' + request('FolderId'),
+            swf: '/Content/Scripts/plugins/uploadify/uploadify.swf',
+            buttonText: "上传图片",
+            height: 24,
+            width: 70,
+            onFallback: function () {
+                alert("您未安装FLASH控件，无法上传！请安装FLASH控件后再试。");
+            },
+            onUploadSuccess: function (file, data, response) {
+                //$('.drag-tip').remove();
+                var DataJson = JSON.parse(data);
+                var img = $('#imgSrc1');
+                var src = DataJson["FilePath"].substr(1);
+                img.attr("src", src);
+                $('#photo_z').val(src);
+            }
+        });
+        $("#imageURL2").uploadify({
+            uploader: '/PublicInfoManage/ResourceFile/UploadifyPicture?FolderId=' + request('FolderId'),
+            swf: '/Content/Scripts/plugins/uploadify/uploadify.swf',
+            buttonText: "上传图片",
+            height: 24,
+            width: 70,
+            onFallback: function () {
+                alert("您未安装FLASH控件，无法上传！请安装FLASH控件后再试。");
+            },
+            onUploadSuccess: function (file, data, response) {
+                //$('.drag-tip').remove();
+                var DataJson = JSON.parse(data);
+                var img = $('#imgSrc2');
+                var src = DataJson["FilePath"].substr(1);
+                img.attr("src", src);
+                $('#photo_b').val(src);
+            }
+        });
+        $("#imageURL3").uploadify({
+            uploader: '/PublicInfoManage/ResourceFile/UploadifyPicture?FolderId=' + request('FolderId'),
+            swf: '/Content/Scripts/plugins/uploadify/uploadify.swf',
+            buttonText: "上传图片",
+            height: 24,
+            width: 70,
+            onFallback: function () {
+                alert("您未安装FLASH控件，无法上传！请安装FLASH控件后再试。");
+            },
+            onUploadSuccess: function (file, data, response) {
+                //$('.drag-tip').remove();
+                var DataJson = JSON.parse(data);
+                var img = $('#imgSrc3');
+                var src = DataJson["FilePath"].substr(1);
+                img.attr("src", src);
+                $('#photo_s').val(src);
+            }
+        });
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <td class="formTitle">认证手机号</td>
+            <td class="formValue">
+                <input id="mobileNumber" type="text" class="form-control"  />
+            </td>
+            <td class="formTitle">姓名</td>
+            <td class="formValue">
+                <input id="custName" type="text" class="form-control" />
+            </td>
+            <td class="formTitle"></td>
+            <td class="formValue">
+                <div class="checkbox">
+                    <label>
+                        <input id="loadMark" type="checkbox" />
+                            提交标识
+                    </label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">身份证</td>
+            <td class="formValue">
+                <input id="custCertCode" type="text" class="form-control"  />
+            </td>
+            <td class="formTitle">地址</td>
+            <td class="formValue" colspan="3">
+                <input id="custCertAddress" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">正面照</td>
+            <td class="formValue">
+                <img id="photo_z" src="" alt="" title="" width="200" />
+            </td>
+            <td class="formTitle">反面照</td>
+            <td class="formValue">
+                <img id="photo_b" src="" alt="" title="" width="200" />
+            </td>
+            <td class="formTitle">半身照</td>
+            <td class="formValue">
+                <img id="photo_s" src="" alt="" title="" width="200" />
+            </td>
+        </tr>
+        @*<tr>
+            <th class='formTitle'>
+            </th>
+            <td class='formValue'>
+                <img id="imgSrc1" src="~/Resource/DocumentFile/Certification/20171014/5360ffd2-3503-4895-a5df-13e47439b046_Water.jpg" alt="" title=""
+                     width="150px" />
+            </td>
+            <th class='formTitle'>
+                正面照：
+            </th>
+            <td class='formValue'>
+                <input id="imageURL1" type="file" />
+                <input type="hidden" id="photo_z" />
+            </td>
+        </tr>
+        <tr>
+            <th class='formTitle'>
+            </th>
+            <td class='formValue'>
+                <img id="imgSrc2" src="~/Content/Images/goods1.jpg" alt="" title=""
+                     width="150px" />
+            </td>
+            <th class='formTitle'>
+                反面照：
+            </th>
+            <td class='formValue'>
+                <input id="imageURL2" type="file" />
+                <input type="hidden" id="photo_b" />
+            </td>
+        </tr>
+        <tr>
+            <th class='formTitle'>
+            </th>
+            <td class='formValue'>
+                <img id="imgSrc3" src="~/Content/Images/goods1.jpg" alt="" title=""
+                     width="150px" />
+            </td>
+            <th class='formTitle'>
+                半身照：
+            </th>
+            <td class='formValue'>
+                <input id="imageURL3" type="file" />
+                <input type="hidden" id="photo_s" />
+            </td>
+        </tr>*@
+       
+    </table>
+</div>

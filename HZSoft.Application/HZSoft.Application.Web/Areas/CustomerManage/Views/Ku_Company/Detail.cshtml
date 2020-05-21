@@ -1,0 +1,296 @@
+@{;
+    ViewBag.Title = "表单页面";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<link href="~/Content/Scripts/cloud-zoom/cloud-zoom.css" rel="stylesheet" />
+<script src="~/Content/Scripts/cloud-zoom/cloud-zoom.js"></script>
+<link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+<script src="~/Content/layui/layui.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    var LocationId = request('LocationId');
+    var RegeoId = request('RegeoId');
+    var RegeoName = unescape(request('RegeoName'));
+    $(function () {
+        initControl();
+    });
+    //初始化控件
+    function initControl() {
+        //经营状态
+        $("#ManageState").ComboBox({
+            url: "../../SystemManage/DataItemDetail/GetDataItemListJson",
+            param: { EnCode: "ManageState" },
+            id: "ItemValue",
+            text: "ItemName",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //跟进状态
+        $("#FollowState").ComboBox({
+            url: "../../SystemManage/DataItemDetail/GetDataItemListJson",
+            param: { EnCode: "FollowState" },
+            id: "ItemValue",
+            text: "ItemName",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //专业化程度
+        $("#Specialized").ComboBox({
+            url: "../../SystemManage/DataItemDetail/GetDataItemListJson",
+            param: { EnCode: "Specialized" },
+            id: "ItemValue",
+            text: "ItemName",
+            description: "==请选择==",
+            height: "200px"
+        });
+        if (!!LocationId) {
+            $("#LocationId").val(LocationId);
+        }
+        if (!!RegeoId) {
+            $("#RegeoId").val(RegeoId);
+        }
+        if (!!RegeoName) {
+            $("#RegeoName").val(RegeoName);
+        }
+        //获取表单，主键不为空
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CustomerManage/Ku_Company/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    //手动创建的，创建人不为空，可以编辑，系统导入的工商数据页签，创建人为空，不可编辑
+                    if (data.CompanyPicture) {
+                        $("#UploadPicture").html("<img src='" + data.CompanyPicture + "' style='height:13em;' />");
+                    }
+                    $(":input").attr("readonly", "readonly");
+                    $(".ui-select").attr("readonly", "readonly");
+                }
+            })
+        }
+
+    }
+</script>
+<div style="margin-left: 10px; margin-right: 10px;">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#BaseInfo" data-toggle="tab">工商信息</a></li>
+        <li><a href="#ExpandInfo" data-toggle="tab">企业画像</a></li>
+    </ul>
+    <div class="tab-content" style="padding-top: 15px;">
+        <div id="BaseInfo" class="tab-pane active" style="padding-right:30px;">
+            <table class="form">
+                <tr>
+                    <td class="formTitle">公司名<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="CompanyName" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" onblur="$.ExistField(this.id, '../../CustomerManage/Ku_Company/ExistFullName')" />
+                    </td>
+                    <td class="formTitle">信用代码</td>
+                    <td class="formValue">
+                        <input id="CreditCode" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">注册号</td>
+                    <td class="formValue">
+                        <input id="CompanyCode" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">登记机关</td>
+                    <td class="formValue">
+                        <input id="RegistrationAgency" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">公司地址<font face="宋体">*</font></td>
+                    <td class="formValue" colspan="3">
+                        <input id="CompanyAddress" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">经营范围<font face="宋体">*</font></td>
+                    <td class="formValue" colspan="3">
+                        <textarea id="Scope" maxlength="200" class="form-control" rows="4" isvalid="yes" checkexpession="NotNull"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">成立时间</td>
+                    <td class="formValue">
+                        <input id="BuildTime" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker({maxDate:'%y-%M-%d'})">
+                    </td>
+                    <td class="formTitle">注册资本（万）</td>
+                    <td class="formValue">
+                        <input id="Capital" type="text" class="form-control" value="0.00" isvalid="yes" checkexpession="Double" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">法人代表</td>
+                    <td class="formValue">
+                        <input id="LegalPerson" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">经营状态<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <div id="ManageState" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                        @*<div id="ManageState" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                            <ul>
+                                <li data-value="1">在营</li>
+                                <li data-value="2">迁出</li>
+                                <li data-value="3">吊销</li>
+                                <li data-value="4">注销</li>
+                            </ul>
+                        </div>*@
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="formTitle">公司类型</td>
+                    <td class="formValue">
+                        <input id="CompanyType" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">所属行业</td>
+                    <td class="formValue">
+                        <input id="Sector" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">经营期限起</td>
+                    <td class="formValue">
+                        <input id="ManageTermStart" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker({maxDate:'%y-%M-%d'})">
+                    </td>
+                    <td class="formTitle">经营期限止</td>
+                    <td class="formValue">
+                        <input id="ManageTermEnd" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">核准日期</td>
+                    <td class="formValue">
+                        <input id="ApprovalDate" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()">
+                    </td>
+                    <td class="formTitle">死亡日期</td>
+                    <td class="formValue">
+                        <input id="DeathDate" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">吊销日期</td>
+                    <td class="formValue">
+                        <input id="RevocationlDate" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()">
+                    </td>
+                    <td class="formTitle">注销日期</td>
+                    <td class="formValue">
+                        <input id="LogoutDate" readonly type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="ExpandInfo" class="tab-pane ">
+            <table class="form">
+                <tr>
+                    <td class="formTitle"></td>
+                    <td class="formValue">
+                        <input id="CompanyPicture" type="hidden" class="form-control" />
+                        <div class="layui-upload-drag upload" id="UploadPicture">
+                            <i class="layui-icon"></i>
+                            <p>点击上传公司图片</p>
+                        </div>
+                    </td>
+
+                    <td class="formTitle"></td>
+                    <td class="formValue">
+                        <table class="form">
+                            <tr>
+                                <td class="formTitle">面积</td>
+                                <td class="formValue">
+                                    <input id="Area" type="text" class="form-control" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="formTitle">人数</td>
+                                <td class="formValue">
+                                    <input id="Employee" type="text" class="form-control" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="formTitle">专业化程度</td>
+                                <td class="formValue">
+                                    <div id="Specialized" type="select" class="ui-select"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="formTitle">合作状态</td>
+                                <td class="formValue">
+                                    <div id="FollowState" type="select" class="ui-select"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="formTitle"></td>
+                                <td class="formValue">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input id="ConfirmState" type="checkbox" />已拜访
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">实际地址</td>
+                    <td class="formValue" colspan="3">
+                        <input id="RealAddress" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">实际行业分类</td>
+                    <td class="formValue">
+                        <input id="RealIndustryCategory" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">实际行业</td>
+                    <td class="formValue">
+                        <input id="RealIndustry" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">热点</td>
+                    <td class="formValue">
+                        <input id="RegeoName" type="text" class="form-control" />
+                        <input id="RegeoId" type="hidden" class="form-control" />
+                        <input id="LocationId" type="hidden" class="form-control" />
+                    </td>
+                    <td class="formTitle">楼号</td>
+                    <td class="formValue">
+                        <input id="Building" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">楼层</td>
+                    <td class="formValue">
+                        <input id="Floor" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">房间</td>
+                    <td class="formValue">
+                        <input id="Room" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">网站</td>
+                    <td class="formValue">
+                        <input id="Website" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">邮箱</td>
+                    <td class="formValue">
+                        <input id="Mailbox" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">备注</td>
+                    <td class="formValue" colspan="3">
+                        <textarea id="Description" maxlength="200" class="form-control" rows="3"></textarea>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>

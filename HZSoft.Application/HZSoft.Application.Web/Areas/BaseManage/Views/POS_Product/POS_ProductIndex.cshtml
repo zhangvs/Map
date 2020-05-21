@@ -1,0 +1,279 @@
+@{
+    ViewBag.Title = "产品管理";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+<script>
+    $(function () {
+        InitialPage();
+        GetTree();
+        GetGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //layout布局
+        $('#layout').layout({
+            applyDemoStyles: true,
+            onresize: function () {
+                $(window).resize()
+            }
+        });
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight($(window).height() - 141);
+                $("#itemTree").setTreeHeight($(window).height() - 52);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载树
+    var _typeId = "";
+    var _typeName = "";
+    var _isTree = "";
+    function GetTree() {
+        var item = {
+            height: $(window).height() - 52,
+            url: "../../BaseManage/POS_Product_Type/GetTreeJson",
+            onnodeclick: function (item) {
+                _typeId = item.id;
+                _typeName = item.text;
+                _isTree = item.isTree;
+                $("#titleinfo").html(_typeName + "(" + item.value + ")");
+                $("#txt_Keyword").val("");
+                $('#btn_Search').trigger("click");
+            }
+        };
+        //初始化
+        $("#itemTree").treeview(item);
+    }
+    //加载表格
+    function GetGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../BaseManage/POS_Product/GetPageListJson",
+            datatype: "json",
+            height: $(window).height() - 171,
+            autowidth: true,
+            colModel: [
+                { label: '主键', name: 'Id', hidden: true },
+                { label: '&nbsp;&nbsp;&nbsp;&nbsp;产品名称', name: 'ProductName', index: 'ProductName', width: 200, align: 'left', sortable: false },
+                { label: '产品编号', name: 'ProductCode', index: 'ProductCode', width: 100, align: 'left', sortable: false },
+                { label: '库存', name: 'Stock', index: 'Stock', width: 80, align: 'left', sortable: false },
+                { label: '排序', name: 'SortCode', index: 'SortCode', width: 50, align: 'center', sortable: false },
+                {
+                    label: "有效", name: "EnabledMark", index: "EnabledMark", width: 50, align: "center", sortable: false,
+                    formatter: function (cellvalue) {
+                        return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                    }
+                },
+                {
+                    label: "删除", name: "DeleteMark", index: "DeleteMark", width: 50, align: "center", sortable: false,
+                    formatter: function (cellvalue) {
+                        return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                    }
+                },
+                { label: '创建时间', name: 'CreateDate', index: 'CreateDate', width: 150, align: 'left', sortable: true },
+                { label: '创建用户主键', name: 'CreateUserId', index: 'CreateUserId', width: 100, align: 'left', sortable: true, hidden: true },
+                { label: '创建用户', name: 'CreateUserName', index: 'CreateUserName', width: 100, align: 'left', sortable: true },
+                { label: '备注', name: 'Description', index: 'Description', width: 300, align: 'left', sortable: true },
+            ],
+            //treeGrid: true,
+            //treeGridModel: "nested",
+            //ExpandColumn: "ItemValue",
+            //rowNum: "10000",
+            //rownumbers: true,
+            //onSelectRow: function () {
+            //    selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            //},
+            //gridComplete: function () {
+            //    $("#" + this.id).setSelection(selectedRowIndex, false);
+            //},
+
+            viewrecords: true,
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'CreateTime',
+            sortorder: 'desc',
+            rownumbers: true,
+            shrinkToFit: false,
+            gridview: true,
+            multiselect: true,
+            onSelectRow: function () {
+                selectedRowIndex = $('#' + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $('#' + this.id).setSelection(selectedRowIndex, false);
+            },
+            ondblClickRow: function () {
+                alert(1)
+            }
+
+        });
+
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                TypeId: _typeId,
+                keyword: $("#txt_Keyword").val()
+            }
+            $gridTable.jqGrid('setGridParam', {
+                    postData: { queryJson: JSON.stringify(queryJson) },
+                    page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //新增
+    function btn_add() {
+        if (!_typeId) {
+            return false;
+        }
+        var parentId = $("#gridTable").jqGridRowValue("Id");
+        if (_isTree != 1) {
+            parentId = 0;
+        }
+        dialogOpen({
+            id: "Form",
+            title: '添加产品',
+            url: '/BaseManage/POS_Product/POS_ProductForm?parentId=' + parentId + "&typeId=" + _typeId,
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("Id");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑产品',
+                url: '/BaseManage/POS_Product/POS_ProductForm?keyValue=' + keyValue,
+                width: "500px",
+                height: "400px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("Id");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../BaseManage/POS_Product/POS_ProductForm/RemoveForm",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").resetSelection();
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            })
+        } else {
+            dialogMsg('请选择需要删除的产品！', 0);
+        }
+    }
+    //详细
+    function btn_detail() {
+        var keyValue = $("#gridTable").jqGridRowValue("Id");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Detail",
+                title: '产品信息',
+                url: '/BaseManage/POS_Product/POS_ProductDetail?keyValue=' + keyValue,
+                width: "500px",
+                height: "480px",
+                btn: null
+            });
+        }
+    }
+    //产品分类
+    function btn_datacategory() {
+        dialogOpen({
+            id: "DataItemSort",
+            title: '产品分类',
+            url: '/BaseManage/POS_Product_Type/POS_Product_TypeIndex',
+            width: "800px",
+            height: "500px",
+            btn: null
+        });
+    }
+    //保存表单
+    function AcceptClick(callback) {
+        var selectedRows = $("#gridTable").jqGrid('getGridParam', 'selarrrow');
+        var returnData = [];
+        if ((selectedRows != undefined) && (selectedRows.length > 0)) {
+            var ids = selectedRows.toString().split(",");
+            for (var i = 0; i < ids.length; i++) {
+                var data = $("#gridTable").jqGrid('getRowData', ids[i]);
+                if (data.Id) {
+                    returnData.push({
+                        ProductId: data.Id,
+                        ProductCode: data.ProductCode,
+                        ProductName: data.ProductName
+                    });
+                }
+            }
+
+            callback(returnData);
+            dialogClose();
+        } else {
+            dialogMsg('请选择需要选择的商品信息！', 0);
+        }
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="ui-layout-west">
+        <div class="west-Panel">
+            <div class="panel-Title">产品分类</div>
+            <div id="itemTree"></div>
+        </div>
+    </div>
+    <div class="ui-layout-center">
+        <div class="center-Panel">
+            <div class="panel-Title">
+                产品数据 - <span id="titleinfo">未选择分类</span>
+            </div>
+            <div class="titlePanel">
+                <div class="title-search">
+                    <table>
+                        <tr>
+                            <td style="padding-left: 2px;">
+                                <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入产品关键字" style="width: 200px;" />
+                            </td>
+                            <td style="padding-left: 5px;">
+                                <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="toolbar">
+                    <div class="btn-group">
+                        <a id="lr-replace" class="btn btn-default" onclick="reload();"><i class="fa fa-refresh"></i>&nbsp;刷新</a>
+                        <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                        <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;编辑</a>
+                        <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                        <a id="lr-detail" class="btn btn-default" onclick="btn_detail()"><i class="fa fa-list-alt"></i>&nbsp;详细</a>
+                    </div>
+                    <div class="btn-group">
+                        <a id="lr-datacategory" class="btn btn-default" onclick="btn_datacategory()"><i class="fa fa-tags"></i>&nbsp;产品分类</a>
+                    </div>
+                </div>
+            </div>
+            <div class="gridPanel">
+                <table id="gridTable"></table>
+                <div id="gridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>号码查询</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name='apple-touch-fullscreen' content='yes' />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no" />
+    <script src="~/Content/scripts/jquery/jquery-1.8.3.min.js"></script>
+    <link href="~/Content/css/stylelistLogin.css" rel="stylesheet" />
+    <link href="~/Content/layer2/mobile/need/layer.css" rel="stylesheet" />
+    <script src="~/Content/layer2/layer.js" type="text/javascript"></script>
+    <link href="~/Content/scripts/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+    <script src="~/Content/scripts/plugins/jquery-ui/jquery-ui.min.js"></script>
+
+
+    <script type="text/javascript">
+        $(function () {
+            var cache = {};
+            $("#telphone").autocomplete({
+                source: function (request, response) {
+                    var term = request.term;
+                    if (term in cache) {
+                        response(cache[term]);
+                        return;
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: "/WeChatManage/TelphoneSearch/TelAuto",
+                        data: { telphone: request.term, rnd: Math.random() },
+                        success: function (data) {
+                            var ary = [];
+                            if (data != "")
+                            {
+                                var result = JSON.parse(data);
+                                for (var i = 0; i < result.length; i++) {
+                                    ary.push(result[i].Telphone.replace(/(^\s*)|(\s*$)/g, ""));
+                                }
+                            }
+                            response(ary);
+                        },
+                        error: function () {
+                            layer.alert('错误', {
+                                skin: 'layui-layer-molv', closeBtn: 0
+                            });
+                        }
+                    });
+                },
+                minLength: 1,
+                select: function (event, ui) {
+                    var url = ui.item.value;
+                    if (url != '') {
+                        $("#telphone").val(url);
+                        f_search();
+                    }
+                },
+                html: true,
+                open: function (event, ui) {
+                    $(".ui-autocomplete").css("z-index", 1000);
+                }
+            });
+        });
+
+        function f_search() {
+            var telphone = $("#telphone").val();
+            $.ajax({
+                url: "/WeChatManage/TelphoneSearch/SearchTel",
+                type: "POST",
+                data: { telphone: telphone, rnd: Math.random() },
+                success: function (data) {
+                    if (data != "") {
+                        var result = JSON.parse(data);
+                        var de = "";
+
+                        if (result.SellMark==1) {
+                            de += "售出状态：已售出！<br/>"
+                        }
+                        else {
+                            de += "售出状态：待售中……<br/>";
+                        }
+                        if (result.Description != null) {
+                            de +="备注："+ result.Description;
+                        }
+
+                        layer.alert('存在此号码：<br/>' + de, {
+                            skin: 'layui-layer-lan', closeBtn: 0
+                        });
+                    }
+                    else {
+                        layer.alert('无此号码', {
+                            skin: 'layui-layer-molv', closeBtn: 0
+                        });
+                    }
+                },
+                error: function () {
+
+                }
+            });
+        }
+    </script>
+</head>
+
+<body bgcolor="#eee">
+    <header class="headerbg2">
+        <div class="header_tit">驰骋POS号码库查询</div>
+    </header>
+
+
+    <div class="carinfo">
+        <div class="reg_name">
+            手机号<input type="text" id="telphone" style="text-align:left;" />
+        </div>
+    </div>
+
+    <input style="background:#24ade4; width:100%; left:0; bottom:0;border-radius:0;" type="button" id="btlogin" class="btn_tijiao" value="查询" onclick="f_search()" />
+
+</body>
+</html>
