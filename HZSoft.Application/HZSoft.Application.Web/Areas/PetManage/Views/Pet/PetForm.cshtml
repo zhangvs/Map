@@ -1,0 +1,292 @@
+﻿@using HZSoft.Application.Entity.CustomerManage;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>宠物</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name='apple-touch-fullscreen' content='yes' />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no" />
+
+    <script src="~/Content/scripts/jquery/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <link href="~/Content/css/stylelistLogin.css" rel="stylesheet" />
+    <link href="~/Content/layer2/mobile/need/layer.css" rel="stylesheet" />
+    <script src="~/Content/layer2/layer.js" type="text/javascript"></script>
+    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
+    <script src="~/Content/layui/layui.js"></script>
+    <script src="~/Content/scripts/plugins/valide.js" type="text/javascript"></script>
+    <link href="~/Content/scripts/plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+    <script src="~/Content/scripts/plugins/jquery-ui/jquery-ui.min.js"></script>
+
+    <!--bootstrap组件start-->
+    <link href="~/Content/scripts/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <!--bootstrap组件end-->
+
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js",
+    "~/Content/scripts/plugins/tree/js",
+    "~/Content/scripts/plugins/validator/js",
+    "~/Content/scripts/plugins/datepicker/js",
+    "~/Content/scripts/utils/js")
+
+
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script type="text/javascript">
+        // 通过config接口注入权限验证配置
+        //步骤三：通过config接口注入权限验证配置
+        wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: '@ViewBag.JSSDKUiPackage.AppId',
+            timestamp: '@ViewBag.JSSDKUiPackage.Timestamp',
+            nonceStr: '@ViewBag.JSSDKUiPackage.NonceStr',
+            signature: '@ViewBag.JSSDKUiPackage.Signature',
+            jsApiList: ["chooseImage", "previewImage", "uploadImage", "downloadImage"]  // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+
+        // 步骤四：通过ready接口处理成功验证
+        wx.ready(function () {
+            //alert("wx.config success.");
+        });
+
+        wx.error(function (res) {
+            alert("wx.config failed.");
+            //alert(res);
+            // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，
+            // 也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+        });
+
+
+        // 图片接口
+        // 拍照、本地选图
+        var images = {
+            localId: [],
+            serverId: []
+        };
+
+
+        var keyValue = request('keyValue');
+        var locationId = request('locationId');
+        var address = request('address');
+
+        $(function () {
+            getForm();
+            uploadPicture();
+        })
+
+        function getForm() {
+            $("#ClassId").ComboBox({
+                url: "../../CustomerManage/Pet_Type/GetTreeJson",
+                param: { parentId: "0" },
+                id: "ItemCode",
+                text: "ItemName",
+                description: "==选择物种==",
+                height: "200px"
+            }).bind("change", function () {
+                var value = $(this).attr('data-value');
+                $("#SubClassId").ComboBox({
+                    url: "../../CustomerManage/Pet_Type/GetTreeJson",
+                    param: { parentId: value },
+                    id: "ItemCode",
+                    text: "ItemName",
+                    description: "==选择品类==",
+                    height: "200px"
+                });
+            });
+            //所在品类
+            $("#SubClassId").ComboBox({
+                description: "==选择品类==",
+                height: "200px"
+            });
+
+            //获取表单
+            if (!!keyValue) {
+                $.SetForm({
+                    url: "../../PetManage/Pet/GetFormJson",
+                    param: { keyValue: keyValue },
+                    success: function (data) {
+                        $("#form1").SetWebControls(data);
+                        if (!data.Photo) {
+                            $("#Photo").attr("imgsrc", data.Photo).html("<img src='" + data.Photo + "' style='height:13em;' />");
+                        }
+                        if (!!data.Birthday) {
+                            $("#Birthday").val(data.Birthday.replace(" 00:00:00", ""));
+                        }
+                        if (!!data.HomeDate) {
+                            $("#HomeDate").val(data.HomeDate.replace(" 00:00:00", ""));
+                        }
+                    }
+                })
+            }
+        }
+
+        function uploadPicture() {
+            $("#Photo").click(function () {
+                wx.chooseImage({
+                    count: 1, // 默认9，这里每次只处理一张照片
+                    sizeType: ['original', 'compressed'],   // 可以指定是原图还是压缩图，默认二者都有
+                    sourceType: ['album', 'camera'],        // 可以指定来源是相册还是相机，默认二者都有
+                    success: function (res) {
+                        images.localId = res.localIds;      // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+
+                        var i = 0, length = images.localId.length;
+                        function upload() {
+                            wx.uploadImage({
+                                localId: images.localId[i],
+                                success: function (res) {
+                                    i++;
+                                    images.serverId.push(res.serverId);
+
+                                    //备注：上传图片有效期3天，可用微信多媒体接口下载图片到自己的服务器，此处获得的 serverId 即 media_id。根据它去微信服务器读取图片数据：
+
+                                    var indata = { "media_id": res.serverId, "callback": "Pet", "folder": "Photo" };
+                                    $.post("/PetManage/WeiXinHome/GetWxPic", indata, function (data) {
+                                        console.log(data);
+                                        if (data == '') {
+                                            layer.alert('上传失败:' + data.Message, {
+                                                skin: 'layui-layer-molv', closeBtn: 0
+                                            });
+                                        } else {
+                                            $("#Photo").attr("imgsrc", data).html("<img src='" + data + "' style='height:13em;' />");
+                                        }
+                                    });
+
+                                    if (i < length) {
+                                        upload();
+                                    }
+                                },
+                                fail: function (res) {
+                                    alert(JSON.stringify(res));
+                                }
+                            });
+                        }
+                        upload();
+                    }
+                });
+            });
+        }
+        
+
+
+        function delTR(index) {
+            $("#" + index).remove();
+        }
+
+
+        /**
+        * 提交验证
+        */
+        function saveForm() {
+            $("#ErrorMessage").html("");
+
+            var Photo = $("#Photo").attr("imgsrc");
+            var Name = trim($("#Name").val());
+            if (Name == "" || Name.length == 0) {
+                $("#ErrorMessage").html("宠物名称不能为空!");
+                return;
+            } else if (Name.length < 2) {
+                $("#ErrorMessage").html("宠物名称不能少于2个汉字!");
+                return;
+            }
+
+            var MasterId = trim($("#MasterId").val());
+            var MasterName = trim($("#MasterName").val());
+
+            if (MasterName == "" || MasterName.length == 0) {
+                $("#ErrorMessage").html("主人名称不能为空!");
+                return;
+            } else if (MasterName.length < 2) {
+                $("#ErrorMessage").html("主人名称不能少于2个汉字!");
+                return;
+            }
+            
+            var index = layer.load(0, { shade: false });
+            var queryJson = $("#filter-form").GetWebControls();
+
+
+            if (typeof (Photo) != "undefined") {
+                queryJson.Photo = Photo;
+            }
+
+            $.ajax({
+                url: "/PetManage/Pet/PetForm?keyValue=" + keyValue,
+                type: "POST",
+                data: queryJson,
+                success: function (responseText) {
+                    layer.close(index);
+                    if (responseText == "true") {
+                        layer.alert('保存成功！', {
+                            skin: 'layui-layer-lan', closeBtn: 0
+                        });
+                    }
+                    else {
+                        layer.alert('未知错误，请联系客服', {
+                            skin: 'layui-layer-molv', closeBtn: 0
+                        });
+                    }
+                },
+                error: function () {
+
+                }
+            });
+
+        }
+
+    </script>
+
+
+</head>
+
+
+<body>
+    <header class="headerbg2" style="height:3rem;line-height:3rem">
+        <div class="return header_tit" style="font-size:1.5em;color:#fff;">
+            <img src="/Content/images/btn_return.png" onclick="window.history.back(-1);" style="float:left;height: 30px; margin-bottom: 5px;" />宠物
+        </div>
+    </header>
+    <form id="form1">
+        <div class="container">
+            <div id="filter-form">
+                <label for="Name">宠物名称 <font style="color:red">*</font></label>
+                <input type="text" class="form-control" id="Name" placeholder="请输入宠物名称">
+                <input type="hidden" id="Id" name="Id" />
+                <label for="HomeDate">到家时间 </label>
+                <input type="date" class="form-control" id="HomeDate" placeholder="请输入成立时间">
+                <label for="Birthday">生日 </label>
+                <input type="date" class="form-control" id="Birthday" placeholder="请输入生日">
+                <label for="MasterName">主人名字 <font style="color:red">*</font></label>
+                <input id="MasterName" type="text" class="form-control" placeholder="请输入主人名字" />
+                <input type="hidden" id="MasterId" name="MasterId" />
+
+                <label for="ClassId">物种 <font style="color:red">*</font></label>
+                <div id="ClassId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+
+                <label for="SubClassId">品种 <font style="color:red">*</font></label>
+                <div id="SubClassId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+
+                <label for="Sterilized">绝育 <font style="color:red">*</font></label>
+                <select class="form-control" id="Sterilized">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+                <br />
+                <label for="Description">备注信息</label>
+                <textarea class="form-control" id="Description" rows="3" placeholder="请输入……"></textarea>
+                <br />
+                宠物图片 <font style="color:red">*</font>
+                <br />
+                <div class="layui-upload-drag" id="Photo">
+                    <i class="layui-icon"></i>
+                    <p>点击上传宠物图片</p>
+                </div>
+                <br />
+                <br />
+                <p class="text-danger" id="ErrorMessage"></p>
+
+                <button type="button" class="btn btn-primary" onclick="saveForm()">保存</button>
+                <br />
+                <br />
+            </div>
+        </div>
+    </form>
+</body>
+</html>

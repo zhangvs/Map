@@ -69,6 +69,9 @@
     <Compile Include="CustomerManage\Ku_CompanySeeEntity.cs" />
     <Compile Include="CustomerManage\Ku_LocationEntity.cs" />
     <Compile Include="CustomerManage\Ku_RelationCompanyEntity.cs" />
+    <Compile Include="CustomerManage\PetEntity.cs" />
+    <Compile Include="CustomerManage\Pet_MasterEntity.cs" />
+    <Compile Include="CustomerManage\Pet_TypeEntity.cs" />
     <Compile Include="CustomerManage\POS_LocationEntity.cs" />
     <Compile Include="CustomerManage\POS_OfficeCompanyEntity.cs" />
     <Compile Include="CustomerManage\POS_OfficeEntity.cs" />

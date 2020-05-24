@@ -64,6 +64,9 @@
     <Compile Include="CustomerManage\Ku_CompanySeeBLL.cs" />
     <Compile Include="CustomerManage\Ku_LocationBLL.cs" />
     <Compile Include="CustomerManage\Ku_RelationCompanyBLL.cs" />
+    <Compile Include="CustomerManage\PetBLL.cs" />
+    <Compile Include="CustomerManage\Pet_MasterBLL.cs" />
+    <Compile Include="CustomerManage\Pet_TypeBLL.cs" />
     <Compile Include="CustomerManage\POS_LocationBLL.cs" />
     <Compile Include="CustomerManage\POS_OfficeBLL.cs" />
     <Compile Include="CustomerManage\POS_OfficeCompanyBLL.cs" />

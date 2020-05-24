@@ -73,6 +73,9 @@
     <Compile Include="CustomerManage\Ku_CompanySeeMap.cs" />
     <Compile Include="CustomerManage\Ku_LocationMap.cs" />
     <Compile Include="CustomerManage\Ku_RelationCompanyMap.cs" />
+    <Compile Include="CustomerManage\PetMap.cs" />
+    <Compile Include="CustomerManage\Pet_MasterMap.cs" />
+    <Compile Include="CustomerManage\Pet_TypeMap.cs" />
     <Compile Include="CustomerManage\POS_LocationMap.cs" />
     <Compile Include="CustomerManage\POS_OfficeCompanyMap.cs" />
     <Compile Include="CustomerManage\POS_OfficeMap.cs" />

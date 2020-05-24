@@ -81,6 +81,9 @@
     <Compile Include="CustomerManage\Ku_CompanySeeIService.cs" />
     <Compile Include="CustomerManage\Ku_LocationIService.cs" />
     <Compile Include="CustomerManage\Ku_RelationCompanyIService.cs" />
+    <Compile Include="CustomerManage\PetIService.cs" />
+    <Compile Include="CustomerManage\Pet_MasterIService.cs" />
+    <Compile Include="CustomerManage\Pet_TypeIService.cs" />
     <Compile Include="CustomerManage\POS_LocationIService.cs" />
     <Compile Include="CustomerManage\POS_OfficeCompanyIService.cs" />
     <Compile Include="CustomerManage\POS_OfficeIService.cs" />

@@ -73,6 +73,9 @@
     <Compile Include="CustomerManage\Ku_CompanyService.cs" />
     <Compile Include="CustomerManage\Ku_LocationService.cs" />
     <Compile Include="CustomerManage\Ku_RelationCompanyService.cs" />
+    <Compile Include="CustomerManage\PetService.cs" />
+    <Compile Include="CustomerManage\Pet_MasterService.cs" />
+    <Compile Include="CustomerManage\Pet_TypeService.cs" />
     <Compile Include="CustomerManage\POS_LocationService.cs" />
     <Compile Include="CustomerManage\POS_OfficeCompanyService.cs" />
     <Compile Include="CustomerManage\POS_OfficeService.cs" />

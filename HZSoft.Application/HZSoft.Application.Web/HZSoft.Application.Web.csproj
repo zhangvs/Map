@@ -201,6 +201,9 @@
     <Compile Include="Areas\CustomerManage\Controllers\Ku_LocationController.cs" />
     <Compile Include="Areas\CustomerManage\Controllers\Ku_RelationCompanyController.cs" />
     <Compile Include="Areas\CustomerManage\Controllers\OrderController.cs" />
+    <Compile Include="Areas\CustomerManage\Controllers\PetController.cs" />
+    <Compile Include="Areas\CustomerManage\Controllers\Pet_MasterController.cs" />
+    <Compile Include="Areas\CustomerManage\Controllers\Pet_TypeController.cs" />
     <Compile Include="Areas\CustomerManage\Controllers\POS_LocationController.cs" />
     <Compile Include="Areas\CustomerManage\Controllers\POS_OfficeCompanyController.cs" />
     <Compile Include="Areas\CustomerManage\Controllers\POS_OfficeController.cs" />
@@ -227,6 +230,10 @@
     <Compile Include="Areas\GeneratorManage\Controllers\SingleTableController.cs" />
     <Compile Include="Areas\GeneratorManage\Controllers\TemplateController.cs" />
     <Compile Include="Areas\GeneratorManage\GeneratorManageAreaRegistration.cs" />
+    <Compile Include="Areas\PetManage\Controllers\MasterController.cs" />
+    <Compile Include="Areas\PetManage\Controllers\PetController.cs" />
+    <Compile Include="Areas\PetManage\Controllers\WeiXinHomeController.cs" />
+    <Compile Include="Areas\PetManage\PetManageAreaRegistration.cs" />
     <Compile Include="Areas\PublicInfoManage\Controllers\EmailController.cs" />
     <Compile Include="Areas\PublicInfoManage\Controllers\ResourceFileController.cs" />
     <Compile Include="Areas\PublicInfoManage\Controllers\NewsController.cs" />
@@ -1772,6 +1779,22 @@
     <Content Include="Areas\WeChatManage\Views\UserCenter\MyBrowse.cshtml" />
     <Content Include="Areas\ReportManage\Views\Dms\dms_month_see.cshtml" />
     <Content Include="Areas\ReportManage\Views\Dms\dms_location_emp.cshtml" />
+    <Content Include="Areas\PetManage\Views\Web.config" />
+    <Content Include="Areas\PetManage\Views\Pet\PetList.cshtml" />
+    <Content Include="Areas\PetManage\Views\Pet\PetDetail.cshtml" />
+    <Content Include="Areas\PetManage\Views\Pet\PetForm.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet\PetForm.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet\PetIndex.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet_Master\Pet_MasterForm.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet_Master\Pet_MasterIndex.cshtml" />
+    <Content Include="Areas\PetManage\Views\Master\MasterForm.cshtml" />
+    <Content Include="Areas\PetManage\Views\Master\MasterList.cshtml" />
+    <Content Include="Areas\PetManage\Views\Master\MasterMap.cshtml" />
+    <Content Include="Areas\PetManage\Views\WeiXinHome\Index.cshtml" />
+    <Content Include="Areas\PetManage\Views\WeiXinHome\Error.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet_Type\Pet_TypeForm.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet_Type\Pet_TypeIndex.cshtml" />
+    <Content Include="Areas\CustomerManage\Views\Pet_Type\Pet_TypeIndex2.cshtml" />
     <None Include="Properties\PublishProfiles\6.1.pubxml" />
     <Content Include="Areas\FlowManage\Views\FlowLaunch\Index.cshtml" />
     <Content Include="Areas\FlowManage\Views\FormDesign\FormPreview.cshtml" />
@@ -1809,7 +1832,6 @@
     <None Include="Properties\PublishProfiles\HZSoft.pubxml" />
     <None Include="Properties\PublishProfiles\map.pubxml" />
     <None Include="Properties\PublishProfiles\pos.pubxml" />
-    <Content Include="Resource\ExcelTemplate\导入模板.xlsx" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
