@@ -9,6 +9,30 @@
     });
     //初始化控件
     function initControl() {
+        //所在品类
+        $("#SubClassId").ComboBox({
+            description: "==选择品类==",
+            height: "200px"
+        });
+        //物种
+        $("#ClassId").ComboBox({
+            url: "../../CustomerManage/Pet_Type/GetListJson",
+            param: { queryJson: "{\"ParentId\":\"0\"}" },
+            id: "ItemId",
+            text: "ItemName",
+            description: "==选择物种==",
+            height: "200px"
+        }).bind("change", function () {
+            var value = $(this).attr('data-value');
+            $("#SubClassId").ComboBox({
+                url: "../../CustomerManage/Pet_Type/GetListJson",
+                param: { queryJson: "{\"ParentId\":\"" + value+"\"}" },
+                id: "ItemId",
+                text: "ItemName",
+                description: "==选择品类==",
+                height: "200px"
+            });
+        });
         //获取表单
         if (!!keyValue) {
             $.SetForm({
@@ -51,11 +75,11 @@
         <tr>
             <td class="formTitle">品种</td>
             <td class="formValue">
-                <input id="ClassName" type="text" class="form-control"  />
+                <div id="ClassId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
             </td>
             <td class="formTitle">子类品种</td>
             <td class="formValue">
-                <input id="SubClassName" type="text" class="form-control"  />
+                <div id="SubClassId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
             </td>
         </tr>
         <tr>

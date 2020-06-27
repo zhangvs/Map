@@ -22,6 +22,9 @@
     <!--bootstrap组件start-->
     <link href="~/Content/scripts/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <!--bootstrap组件end-->
+    <script src="~/Content/scripts/utils/hzsoft-ui.js"></script>
+    <script src="~/Content/scripts/utils/hzsoft-form.js"></script>
+    <link href="~/Content/styles/hzsoft-ui.css" rel="stylesheet" />
 
     @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js",
     "~/Content/scripts/plugins/tree/js",
@@ -74,28 +77,29 @@
         })
 
         function getForm() {
+            //所在品类
+            $("#SubClassId").ComboBox({
+                description: "==选择品类==",
+                height: "200px"
+            });
+            //物种
             $("#ClassId").ComboBox({
-                url: "../../CustomerManage/Pet_Type/GetTreeJson",
-                param: { parentId: "0" },
-                id: "ItemCode",
+                url: "../../CustomerManage/Pet_Type/GetListJson",
+                param: { queryJson: "{\"ParentId\":\"0\"}" },
+                id: "ItemId",
                 text: "ItemName",
                 description: "==选择物种==",
                 height: "200px"
             }).bind("change", function () {
                 var value = $(this).attr('data-value');
                 $("#SubClassId").ComboBox({
-                    url: "../../CustomerManage/Pet_Type/GetTreeJson",
-                    param: { parentId: value },
-                    id: "ItemCode",
+                    url: "../../CustomerManage/Pet_Type/GetListJson",
+                    param: { queryJson: "{\"ParentId\":\"" + value + "\"}" },
+                    id: "ItemId",
                     text: "ItemName",
                     description: "==选择品类==",
                     height: "200px"
                 });
-            });
-            //所在品类
-            $("#SubClassId").ComboBox({
-                description: "==选择品类==",
-                height: "200px"
             });
 
             //获取表单
@@ -164,7 +168,7 @@
                 });
             });
         }
-        
+
 
 
         function delTR(index) {
@@ -198,7 +202,7 @@
                 $("#ErrorMessage").html("主人名称不能少于2个汉字!");
                 return;
             }
-            
+
             var index = layer.load(0, { shade: false });
             var queryJson = $("#filter-form").GetWebControls();
 

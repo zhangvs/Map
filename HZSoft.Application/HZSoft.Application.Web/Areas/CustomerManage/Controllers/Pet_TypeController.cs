@@ -64,16 +64,16 @@ namespace HZSoft.Application.Web.Areas.CustomerManage.Controllers
         /// <param name="keyword">关键字查询</param>
         /// <returns>返回树形Json</returns>
         [HttpGet]
-        public ActionResult GetTreeJson(string keyword,string _parentId)
+        public ActionResult GetTreeJson(string keyword,string parentId)
         {
             var data = pos_productbll.GetList().OrderBy(t => t.SortCode).ToList();
             if (!string.IsNullOrEmpty(keyword))
             {
-                data = data.TreeWhere(t => t.ItemName.Contains(keyword), "");
+                data = data.TreeWhere(t => t.ItemName.Contains(keyword), "ItemId");
             }
-            if (!string.IsNullOrEmpty(_parentId))
+            if (!string.IsNullOrEmpty(parentId))
             {
-                data = data.TreeWhere(t => t.ParentId== _parentId, "ItemId");//主键ItemId
+                data = data.TreeWhere(t => t.ParentId == parentId, "ItemId");//主键ItemId
             }
             var treeList = new List<TreeEntity>();
             foreach (Pet_TypeEntity item in data)

@@ -68,6 +68,7 @@ namespace HZSoft.Application.Service.CustomerManage
             var expression = LinqExtensions.True<Pet_TypeEntity>();
             var queryParam = queryJson.ToJObject();
             string strSql = "select * from Pet_Type where 1 = 1";
+            string strOrder = " ORDER BY sortcode asc";
 
             //∑÷¿‡id
             if (!queryParam["ItemId"].IsEmpty())
@@ -91,7 +92,8 @@ namespace HZSoft.Application.Service.CustomerManage
                 string keyword = queryParam["keyword"].ToString();
                 strSql += " and (ItemName like '%" + keyword + "%' or ItemCode like '%" + keyword + "%')";
             }
-            
+
+            strSql += strOrder;
             return this.BaseRepository().FindList(strSql.ToString());
         }
         /// <summary>
