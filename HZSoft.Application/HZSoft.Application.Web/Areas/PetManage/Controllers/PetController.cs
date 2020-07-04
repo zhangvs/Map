@@ -63,7 +63,7 @@ namespace HZSoft.Application.Web.Areas.PetManage.Controllers
         }
 
         /// <summary>
-        /// 添加公司
+        /// 添加宠物http://map.lywenkai.cn/PetManage/Pet/PetForm
         /// </summary>
         /// <returns></returns>
         public ActionResult PetForm()

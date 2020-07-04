@@ -80,12 +80,12 @@ namespace HZSoft.Application.Service.CustomerManage
             {
                 string wxLon = queryParam["wxLon"].ToString();
                 string wxLat = queryParam["wxLat"].ToString();
-                strSql = "select top 100 id,wxlon,wxlat,name,address,count,dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) as description,picture FROM " + locationSql + " t where 1=1";
+                strSql = "select top 100 id,wxlon,wxlat,regeoname,address,count,dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) as description,picture FROM " + locationSql + " t where 1=1";
                 strOrder = " order by dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) asc";
             }
             else
             {
-                strSql = "select top 100 id,wxlon,wxlat,name,address,count from " + locationSql + " where 1 = 1 ";
+                strSql = "select top 100 id,wxlon,wxlat,regeoname,address,count from " + locationSql + " where 1 = 1 ";
                 strOrder = " ORDER BY CreateDate desc";
             }
             //µÍ∆Ã√˚
