@@ -72,20 +72,17 @@ namespace HZSoft.Application.Service.CustomerManage
             //限坐标表
             string strOrder = "";
             string strSql = "";
-            string des = OperatorProvider.Provider.Current().Description;
-            //string des = "兰山区";
-            string locationSql = LocationHelper.GetLocationSql(des);
             //假如有微信坐标的话
             if (!queryParam["wxLon"].IsEmpty() && !queryParam["wxLat"].IsEmpty())
             {
                 string wxLon = queryParam["wxLon"].ToString();
                 string wxLat = queryParam["wxLat"].ToString();
-                strSql = "select top 100 id,wxlon,wxlat,regeoname,address,count,dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) as description,picture FROM " + locationSql + " t where 1=1";
+                strSql = "select top 100 id,wxlon,wxlat,name,address,petsname,dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) as description,picture FROM Pet_Master t where 1=1";
                 strOrder = " order by dbo.f_GetDistance(" + wxLon + "," + wxLat + ",wxlon,wxlat) asc";
             }
             else
             {
-                strSql = "select top 100 id,wxlon,wxlat,regeoname,address,count from " + locationSql + " where 1 = 1 ";
+                strSql = "select top 100 id,wxlon,wxlat,name,address,petsname from Pet_Master where 1 = 1 ";
                 strOrder = " ORDER BY CreateDate desc";
             }
             //店铺名

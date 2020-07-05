@@ -55,7 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AccountService.cs" />
+    <Compile Include="ReportManage\AccountService.cs" />
     <Compile Include="AuthorizeManage\AuthorizeService.T.cs" />
     <Compile Include="AuthorizeManage\AuthorizeService.cs" />
     <Compile Include="AuthorizeManage\ModuleFormInstanceService.cs" />

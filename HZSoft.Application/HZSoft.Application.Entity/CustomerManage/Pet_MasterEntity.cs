@@ -162,8 +162,8 @@ namespace HZSoft.Application.Entity.CustomerManage
         public override void Create()
         {
             this.CreateDate = DateTime.Now;
-            this.CreateUserId = OperatorProvider.Provider.Current().UserId;
-            this.CreateUserName = OperatorProvider.Provider.Current().UserName;
+            //this.CreateUserId = OperatorProvider.Provider.Current().UserId;
+            //this.CreateUserName = OperatorProvider.Provider.Current().UserName;
         }
         /// <summary>
         /// ±à¼­µ÷ÓÃ
@@ -173,8 +173,8 @@ namespace HZSoft.Application.Entity.CustomerManage
         {
             this.Id = keyValue;
             this.ModifyDate = DateTime.Now;
-            this.ModifyUserId = OperatorProvider.Provider.Current().UserId;
-            this.ModifyUserName = OperatorProvider.Provider.Current().UserName;
+            //this.ModifyUserId = OperatorProvider.Provider.Current().UserId;
+            //this.ModifyUserName = OperatorProvider.Provider.Current().UserName;
         }
         #endregion
     }
