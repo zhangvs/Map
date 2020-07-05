@@ -164,6 +164,8 @@ namespace HZSoft.Application.Entity.CustomerManage
             this.CreateDate = DateTime.Now;
             //this.CreateUserId = OperatorProvider.Provider.Current().UserId;
             //this.CreateUserName = OperatorProvider.Provider.Current().UserName;
+            PetsCount = 0;
+            DeleteMark = 0;
         }
         /// <summary>
         /// ±à¼­µ÷ÓÃ

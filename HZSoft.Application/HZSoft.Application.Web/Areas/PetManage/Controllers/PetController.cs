@@ -18,9 +18,9 @@ using System.Web.Mvc;
 namespace HZSoft.Application.Web.Areas.PetManage.Controllers
 {
     /// <summary>
-    /// 公司页面
+    /// 宠物
     /// </summary>
-    [HandlerWXLoginAttribute(LoginMode.Enforce)]
+    [HandlerWXAuthorizeAttribute(LoginMode.Enforce)]
     public class PetController : Controller
     {
         PetBLL petBll = new PetBLL();
@@ -66,11 +66,12 @@ namespace HZSoft.Application.Web.Areas.PetManage.Controllers
         /// 添加宠物http://map.lywenkai.cn/PetManage/Pet/PetForm
         /// </summary>
         /// <returns></returns>
-        public ActionResult PetForm()
+        public ActionResult PetForm(string masterId, string masterName)
         {
             var jssdkUiPackage = Senparc.Weixin.MP.Helpers.JSSDKHelper.GetJsSdkUiPackage(WeixinConfig.AppID, WeixinConfig.AppSecret, Request.Url.AbsoluteUri.Split('#')[0]);
             ViewBag.JSSDKUiPackage = jssdkUiPackage;
-
+            ViewBag.masterId = masterId;
+            ViewBag.masterName = masterName;
 
             return View();
         }

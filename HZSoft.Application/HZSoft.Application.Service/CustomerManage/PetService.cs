@@ -16,6 +16,7 @@ namespace HZSoft.Application.Service.CustomerManage
     /// </summary>
     public class PetService : RepositoryFactory<PetEntity>, PetIService
     {
+        private Pet_MasterService masterService = new Pet_MasterService();
         #region 获取数据
         /// <summary>
         /// 获取列表
@@ -64,6 +65,7 @@ namespace HZSoft.Application.Service.CustomerManage
         /// <returns></returns>
         public void SaveForm(int? keyValue, PetEntity entity)
         {
+            IRepository db = new RepositoryFactory().BaseRepository().BeginTrans();
             if (keyValue != null)
             {
                 entity.Modify(keyValue);
@@ -72,6 +74,14 @@ namespace HZSoft.Application.Service.CustomerManage
             else
             {
                 entity.Create();
+                var masterEntity = masterService.GetEntity(entity.MasterId);
+                if (masterEntity!=null)
+                {
+                    masterEntity.PetsCount += 1;//主人表，宠物数量+1
+                    masterEntity.PetsName += ","+entity.SubClassName;//主人表，添加宠物名称
+                    db.Update(masterEntity);
+                    db.Commit();
+                }
                 this.BaseRepository().Insert(entity);
             }
         }

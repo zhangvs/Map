@@ -158,6 +158,8 @@
                         layer.alert('保存成功！', {
                             skin: 'layui-layer-lan', closeBtn: 0
                         });
+
+                        window.location.href = "/PetManage/Pet/PetForm?masterId=" + responseText.Id + "&masterName=" + responseText.Name;
                     }
                     else {
                         layer.alert('未知错误，请联系客服', {
@@ -186,7 +188,12 @@
                 <input type="hidden" id="Id">
                 <input type="text" class="form-control" id="Name" placeholder="请输入主人名字">
                 <br />
-                <label for="Name">主人性别 <font style="color:red">*</font></label>
+                <label for="Gender">主人性别 <font style="color:red">*</font></label>
+                <select class="form-control" id="Gender">
+                    <option value="1">男</option>
+                    <option value="0">女</option>
+                </select>
+
                 <input type="text" class="form-control" id="Gender" placeholder="请输入主人性别">
                 <br />
                 <label for="Name">主人手机 <font style="color:red">*</font></label>
@@ -194,8 +201,8 @@
                 <br />
                 <label for="Address">主人地址 <font style="color:red">*</font></label>
                 <textarea class="form-control" id="Address" rows="3">@ViewBag.address</textarea>
-                <input type="text" class="form-control" id="wxLon" value="@ViewBag.currentLon">
-                <input type="text" class="form-control" id="wxLat" value="@ViewBag.currentLat">
+                <input type="hidden" class="form-control" id="wxLon" value="@ViewBag.currentLon">
+                <input type="hidden" class="form-control" id="wxLat" value="@ViewBag.currentLat">
                 <br />
 
                 主人头像 <font style="color:red">*</font>

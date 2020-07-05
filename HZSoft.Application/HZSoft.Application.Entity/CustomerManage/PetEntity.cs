@@ -27,7 +27,7 @@ namespace HZSoft.Application.Entity.CustomerManage
         /// 主人Id
         /// </summary>
         /// <returns></returns>
-        public string MasterId { get; set; }
+        public int? MasterId { get; set; }
         /// <summary>
         /// 主人名称
         /// </summary>
@@ -133,8 +133,9 @@ namespace HZSoft.Application.Entity.CustomerManage
         {
             //this.Id = Guid.NewGuid().ToString();
             this.CreateDate = DateTime.Now;
-            this.CreateUserId = OperatorProvider.Provider.Current().UserId;
-            this.CreateUserName = OperatorProvider.Provider.Current().UserName;
+            //this.CreateUserId = OperatorProvider.Provider.Current().UserId;
+            //this.CreateUserName = OperatorProvider.Provider.Current().UserName;
+            DeleteMark = 0;
         }
         /// <summary>
         /// 编辑调用
@@ -144,8 +145,8 @@ namespace HZSoft.Application.Entity.CustomerManage
         {
             this.Id = keyValue;
             this.ModifyDate = DateTime.Now;
-            this.ModifyUserId = OperatorProvider.Provider.Current().UserId;
-            this.ModifyUserName = OperatorProvider.Provider.Current().UserName;
+            //this.ModifyUserId = OperatorProvider.Provider.Current().UserId;
+            //this.ModifyUserName = OperatorProvider.Provider.Current().UserName;
         }
         #endregion
     }

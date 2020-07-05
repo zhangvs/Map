@@ -21,9 +21,9 @@ using System.Web.Mvc;
 namespace HZSoft.Application.Web.Areas.PetManage.Controllers
 {
     /// <summary>
-    /// 热点
+    /// 主人
     /// </summary>
-    [HandlerWXLoginAttribute(LoginMode.Enforce)]
+    [HandlerWXAuthorizeAttribute(LoginMode.Enforce)]
     public class MasterController : Controller
     {
         WeChat_UsersBLL wechatUserBll = new WeChat_UsersBLL();

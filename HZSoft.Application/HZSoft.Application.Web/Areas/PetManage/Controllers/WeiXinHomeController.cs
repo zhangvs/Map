@@ -16,7 +16,7 @@ namespace HZSoft.Application.Web.Areas.PetManage.Controllers
     /// <summary>
     /// 主界面
     /// </summary>
-    [HandlerWXLoginAttribute(LoginMode.Enforce)]
+    [HandlerWXAuthorizeAttribute(LoginMode.Enforce)]
     public class WeiXinHomeController : BaseWxUserController
     {
         /// <summary>

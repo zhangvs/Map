@@ -21,7 +21,7 @@ namespace HZSoft.Application.Web.Areas.WeChatManage.Controllers
     /// 公司页面
     /// </summary>
     [HandlerWXAuthorizeAttribute(LoginMode.Enforce)]
-    [HandlerWXLoginAttribute(LoginMode.Enforce)]
+    //[HandlerWXLoginAttribute(LoginMode.Enforce)]
     public class CompanyController : Controller
     {
         Ku_CompanyBLL companyBll = new Ku_CompanyBLL();
